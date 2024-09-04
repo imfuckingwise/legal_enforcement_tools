@@ -146,7 +146,7 @@ function detectInfoType(infoDetail) {
     return null;
 }
 
-// 保存文件
+// 保存文件功能，使用 Blob 和 URL.createObjectURL
 function saveFile() {
     const caseNumber = document.getElementById('caseNumber').value;
     if (!caseNumber) {
@@ -180,12 +180,23 @@ function saveFile() {
     const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
     XLSX.utils.book_append_sheet(workbook, worksheet, '调证信息');
 
-    // 檔案名
-    const fileName = `调证信息文件${caseNumber}.xlsx`;
+    // 將工作簿轉換為二進制數據
+    const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
 
-    // 生成 Excel 文件並觸發下載
-    XLSX.writeFile(workbook, fileName);
+    // 使用 Blob 來創建文件數據
+    const blob = new Blob([wbout], { type: 'application/octet-stream' });
+
+    // 在 iOS 或移動設備上使用 URL.createObjectURL 來生成下載鏈接
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `调证信息文件${caseNumber}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url); // 清除URL對象
 }
+
 
 // 文件導入功能，覆蓋現有資料，並從檔案名自動填入案號
 function importFile() {
