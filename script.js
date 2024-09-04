@@ -146,7 +146,15 @@ function detectInfoType(infoDetail) {
     return null;
 }
 
-// 保存文件功能，使用 Blob 和 URL.createObjectURL
+// 將二進制數據轉換為 Base64
+function s2ab(s) {
+    const buf = new ArrayBuffer(s.length);
+    const view = new Uint8Array(buf);
+    for (let i = 0; i != s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+    return buf;
+}
+
+// 保存文件功能，使用 Base64
 function saveFile() {
     const caseNumber = document.getElementById('caseNumber').value;
     if (!caseNumber) {
@@ -181,12 +189,10 @@ function saveFile() {
     XLSX.utils.book_append_sheet(workbook, worksheet, '调证信息');
 
     // 將工作簿轉換為二進制數據
-    const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary' });
 
-    // 使用 Blob 來創建文件數據
-    const blob = new Blob([wbout], { type: 'application/octet-stream' });
-
-    // 在 iOS 或移動設備上使用 URL.createObjectURL 來生成下載鏈接
+    // 使用 Base64 生成下載鏈接
+    const blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -196,6 +202,7 @@ function saveFile() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url); // 清除URL對象
 }
+
 
 
 // 文件導入功能，覆蓋現有資料，並從檔案名自動填入案號
