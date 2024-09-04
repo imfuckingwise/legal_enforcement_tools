@@ -154,7 +154,18 @@ function s2ab(s) {
     return buf;
 }
 
-// 保存文件功能，使用 Base64
+// 將數據轉換為 Base64 字符串
+function arrayBufferToBase64(buffer) {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
+}
+
+// 保存文件功能，使用 Base64 Data URL
 function saveFile() {
     const caseNumber = document.getElementById('caseNumber').value;
     if (!caseNumber) {
@@ -189,20 +200,19 @@ function saveFile() {
     XLSX.utils.book_append_sheet(workbook, worksheet, '调证信息');
 
     // 將工作簿轉換為二進制數據
-    const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary' });
+    const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
 
-    // 使用 Base64 生成下載鏈接
-    const blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
-    const url = URL.createObjectURL(blob);
+    // 將數據轉換為 Base64
+    const base64Data = arrayBufferToBase64(wbout);
+
+    // 使用 Data URL 觸發下載
     const a = document.createElement('a');
-    a.href = url;
+    a.href = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${base64Data}`;
     a.download = `调证信息文件${caseNumber}.xlsx`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url); // 清除URL對象
 }
-
 
 
 // 文件導入功能，覆蓋現有資料，並從檔案名自動填入案號
