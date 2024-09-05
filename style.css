@@ -85,6 +85,14 @@ textarea {
     color: #f0f0f0;
 }
 
+
+/* 調整佔位符文字的顏色 */
+
+.dark-mode ::placeholder {
+    color: #f0f0f0;
+    opacity: 1;
+}
+
 .dark-mode h1 {
     color: #f0f0f0;
 }
