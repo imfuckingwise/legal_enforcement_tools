@@ -1,5 +1,8 @@
+/* 預設淺色模式 */
+
 body {
     background-color: #f8f9fa;
+    color: #000;
 }
 
 h1 {
@@ -9,8 +12,103 @@ h1 {
 
 .table {
     margin-top: 20px;
+    color: #000;
 }
 
-.btn {
-    margin-right: 10px;
+.form-control,
+select,
+textarea {
+    background-color: #fff;
+    color: #000;
+}
+
+.dark-mode {
+    background-color: #121212;
+    color: #f0f0f0;
+}
+
+.dark-mode h1 {
+    color: #f0f0f0;
+}
+
+.dark-mode .table {
+    color: #f0f0f0;
+}
+
+.dark-mode .form-control,
+.dark-mode select,
+.dark-mode textarea {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #555;
+}
+
+.dark-mode .btn-primary,
+.dark-mode .btn-secondary,
+.dark-mode .btn-success,
+.dark-mode .btn-warning {
+    /* 保留按鈕的 Bootstrap 顏色 */
+}
+
+.dark-mode .btn,
+.dark-mode .form-label {
+    color: #fff;
+}
+
+
+/* 預設淺色模式 */
+
+body {
+    background-color: #f8f9fa;
+    color: #000;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.table {
+    margin-top: 20px;
+    color: #000;
+}
+
+.form-control,
+select,
+textarea {
+    background-color: #fff;
+    color: #000;
+}
+
+.dark-mode {
+    background-color: #121212;
+    color: #f0f0f0;
+}
+
+.dark-mode h1 {
+    color: #f0f0f0;
+}
+
+.dark-mode .table {
+    color: #f0f0f0;
+}
+
+.dark-mode .form-control,
+.dark-mode select,
+.dark-mode textarea {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #555;
+}
+
+.dark-mode .btn-primary,
+.dark-mode .btn-secondary,
+.dark-mode .btn-success,
+.dark-mode .btn-warning {
+    /* 保留按鈕的 Bootstrap 顏色 */
+}
+
+.dark-mode .btn,
+.dark-mode .form-label {
+    color: #fff;
 }

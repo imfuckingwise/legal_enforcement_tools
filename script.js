@@ -1,3 +1,20 @@
+// 初始化時自動偵測系統主題
+window.onload = function() {
+    const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+
+    if (prefersDarkScheme.matches) {
+        document.body.classList.add("dark-mode");
+    } else {
+        document.body.classList.remove("dark-mode");
+    }
+};
+
+// 切換深色模式
+function toggleDarkMode() {
+    const body = document.body;
+    body.classList.toggle("dark-mode");
+}
+
 // 添加信息
 function addInfo() {
     const caseNumber = document.getElementById('caseNumber').value;
