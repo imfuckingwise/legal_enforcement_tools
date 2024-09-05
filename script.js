@@ -40,15 +40,28 @@ function addRow(infoType, infoDetail) {
     const infoTypeCell = newRow.insertCell(1);
     const infoDetailCell = newRow.insertCell(2);
 
-    delCell.innerHTML = `<button class="btn btn-danger btn-sm" onclick="deleteRow(this)">[-]</button>`;
+    delCell.innerHTML = `<button class="btn btn-danger btn-sm" onclick="deleteRow(this)">刪除</button>`;
     infoTypeCell.innerText = infoType;
     infoDetailCell.innerText = infoDetail;
+
+    // 更新資料數
+    updateDataCount();
 }
 
 // 刪除表格行
 function deleteRow(btn) {
     const row = btn.parentNode.parentNode;
     row.parentNode.removeChild(row);
+
+    // 更新資料數
+    updateDataCount();
+}
+
+// 更新資料數
+function updateDataCount() {
+    const infoTable = document.getElementById('infoTable').getElementsByTagName('tbody')[0];
+    const rowCount = infoTable.rows.length;
+    document.getElementById('dataCount').innerText = rowCount;
 }
 
 // 檢查各種區塊鏈地址或TXID的有效性
