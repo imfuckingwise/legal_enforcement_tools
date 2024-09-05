@@ -10,7 +10,7 @@
 
 <body>
     <div class="container mt-4">
-        <h1>司法調證信息錄入 - 網頁版 (v1.3)</h1>
+        <h1>司法調證信息錄入 - 網頁版 (v1.2)</h1>
 
         <div class="mb-3">
             <label for="caseNumber" class="form-label">请输入案号：</label>
@@ -35,7 +35,14 @@
         </div>
 
         <button class="btn btn-primary mb-3" onclick="addInfo()">添加信息</button>
-        <button class="btn btn-secondary mb-3" onclick="bulkAddInfo()">批量新增</button>
+
+        <!-- 批量新增輸入區塊 -->
+        <div class="mb-3">
+            <label for="bulkInput" class="form-label">批量新增：</label>
+            <textarea id="bulkInput" class="form-control" rows="5" placeholder="每行一条信息"></textarea>
+            <button class="btn btn-secondary mt-2" onclick="bulkAddInfoFromMain()">批量新增</button>
+        </div>
+
         <button class="btn btn-success mb-3" onclick="saveFile()">保存文件</button>
         <button class="btn btn-warning mb-3" onclick="importFile()">导入文件</button>
 

@@ -125,13 +125,13 @@ function isValidSOLTXID(txid) {
     return /^[A-Za-z0-9]{88}$/.test(txid);
 }
 
-
-
-// 批量新增功能
-function bulkAddInfo() {
-    const bulkText = prompt("请输入批量信息，每行一条 (僅支持地址與哈希)：");
-
-    if (!bulkText) return;
+// 批量新增功能，從主視窗的輸入框中讀取
+function bulkAddInfoFromMain() {
+    const bulkText = document.getElementById('bulkInput').value;
+    if (!bulkText) {
+        alert('批量信息不能为空');
+        return;
+    }
 
     const infoList = bulkText.split("\n");
 
@@ -146,7 +146,11 @@ function bulkAddInfo() {
             alert(`无效的地址或TXID: ${infoDetail}`);
         }
     });
+
+    // 清空批量輸入框
+    document.getElementById('bulkInput').value = '';
 }
+
 
 // 根據內容檢測信息類型
 function detectInfoType(infoDetail) {
