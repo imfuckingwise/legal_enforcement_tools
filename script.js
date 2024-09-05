@@ -239,7 +239,7 @@ function importFile() {
             // 將資料填入表格
             rows.forEach(row => {
                 const infoType = row['信息类型'];
-                const infoDetail = row['信息详情'];
+                const infoDetail = row['调证信息详情'];
                 addRow(infoType, infoDetail);
             });
 
