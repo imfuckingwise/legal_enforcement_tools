@@ -186,7 +186,7 @@ function saveFile() {
     const worksheetData = [];
 
     // 添加表頭
-    worksheetData.push(['信息类型', '信息详情']);
+    worksheetData.push(['信息类型', '调证信息详情']);
 
     // 添加表格資料
     for (let row of rows) {
