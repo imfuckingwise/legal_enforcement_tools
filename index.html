@@ -13,6 +13,9 @@
     <div class="container mt-4">
         <h1>司法調證信息錄入 - 網頁版 (v1.2)</h1>
 
+        <!-- 切換深色模式按鈕 -->
+        <button class="btn btn-dark mb-3" onclick="toggleDarkMode()">切換深色模式</button>
+
         <div class="mb-3">
             <label for="caseNumber" class="form-label">请输入案号：</label>
             <input type="text" class="form-control" id="caseNumber" placeholder="Enter Case Number">
@@ -43,6 +46,7 @@
         <button class="btn btn-success mb-3" onclick="saveFile()">保存文件</button>
         <button class="btn btn-warning mb-3" onclick="importFile()">导入文件</button>
 
+        <!-- 複製與刪除全部資料的按鈕 -->
         <div class="mb-3">
             <button class="btn btn-info" onclick="copyAllData()">複製全部資料</button>
             <button class="btn btn-danger" onclick="deleteAllData()">刪除全部資料</button>
@@ -60,7 +64,6 @@
             </thead>
             <tbody></tbody>
         </table>
-
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
