@@ -1,15 +1,3 @@
-// 初始化時自動偵測系統主題
-window.onload = function() {
-    const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
-
-    if (prefersDarkScheme.matches) {
-        document.body.classList.add("dark-mode");
-    } else {
-        document.body.classList.remove("dark-mode");
-    }
-};
-
-// 切換深色模式
 function toggleDarkMode() {
     const body = document.body;
     body.classList.toggle("dark-mode");
@@ -48,7 +36,7 @@ function isValidInfo(infoType, infoDetail) {
     return false;
 }
 
-// 添加表格行，包含刪除按鈕
+// 添加表格行
 function addRow(infoType, infoDetail) {
     const infoTable = document.getElementById('infoTable').getElementsByTagName('tbody')[0];
     const newRow = infoTable.insertRow();
@@ -65,13 +53,41 @@ function addRow(infoType, infoDetail) {
     updateDataCount();
 }
 
-// 刪除表格行
+// 複製所有資料到剪貼簿
+function copyAllData() {
+    const infoTable = document.getElementById('infoTable').getElementsByTagName('tbody')[0];
+    const rows = infoTable.rows;
+    let allData = '';
+
+    for (let i = 0; i < rows.length; i++) {
+        const infoType = rows[i].cells[1].innerText;
+        const infoDetail = rows[i].cells[2].innerText;
+        allData += `${infoType}：${infoDetail}\n`;
+    }
+
+    if (allData) {
+        navigator.clipboard.writeText(allData).then(() => {
+            alert('所有資料已複製到剪貼簿！');
+        }).catch(err => {
+            console.error('複製失敗', err);
+        });
+    } else {
+        alert('沒有可複製的資料！');
+    }
+}
+
+// 刪除所有資料
+function deleteAllData() {
+    const infoTable = document.getElementById('infoTable').getElementsByTagName('tbody')[0];
+    infoTable.innerHTML = ''; // 清空表格的所有資料
+    updateDataCount(); // 更新資料數
+}
+
+// 刪除單個行
 function deleteRow(btn) {
     const row = btn.parentNode.parentNode;
     row.parentNode.removeChild(row);
-
-    // 更新資料數
-    updateDataCount();
+    updateDataCount(); // 更新資料數
 }
 
 // 更新資料數
@@ -80,6 +96,7 @@ function updateDataCount() {
     const rowCount = infoTable.rows.length;
     document.getElementById('dataCount').innerText = rowCount;
 }
+
 
 // 檢查各種區塊鏈地址或TXID的有效性
 function isValidBTCAddress(address) {

@@ -13,9 +13,6 @@
     <div class="container mt-4">
         <h1>司法調證信息錄入 - 網頁版 (v1.2)</h1>
 
-        <!-- 增加深色模式切換按鈕 -->
-        <button class="btn btn-dark mb-3" onclick="toggleDarkMode()">切換深色模式</button>
-
         <div class="mb-3">
             <label for="caseNumber" class="form-label">请输入案号：</label>
             <input type="text" class="form-control" id="caseNumber" placeholder="Enter Case Number">
@@ -26,10 +23,6 @@
             <select class="form-control" id="infoType">
                 <option value="充值地址">充值地址</option>
                 <option value="TXID">TXID</option>
-                <option value="银行卡号">银行卡号</option>
-                <option value="证件号码">证件号码</option>
-                <option value="手机号码">手机号码</option>
-                <option value="邮箱地址">邮箱地址</option>
             </select>
         </div>
 
@@ -50,6 +43,11 @@
         <button class="btn btn-success mb-3" onclick="saveFile()">保存文件</button>
         <button class="btn btn-warning mb-3" onclick="importFile()">导入文件</button>
 
+        <div class="mb-3">
+            <button class="btn btn-info" onclick="copyAllData()">複製全部資料</button>
+            <button class="btn btn-danger" onclick="deleteAllData()">刪除全部資料</button>
+        </div>
+
         <h3>已录入的信息</h3>
         <p>目前資料數：<span id="dataCount">0</span></p>
         <table class="table table-bordered" id="infoTable">
@@ -62,6 +60,7 @@
             </thead>
             <tbody></tbody>
         </table>
+
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
