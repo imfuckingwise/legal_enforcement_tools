@@ -278,6 +278,18 @@ function saveFile() {
 
     // 保存文件後自動重整：清空文件名和表格資料
     resetForm();
+
+    // 顯示成功通知
+    showSuccessAlert();
+}
+
+// 顯示保存成功的通知
+function showSuccessAlert() {
+    const successAlert = document.getElementById('successAlert');
+    successAlert.classList.remove('d-none'); // 顯示成功通知
+    setTimeout(() => {
+        successAlert.classList.add('d-none'); // 3秒後隱藏
+    }, 3000);
 }
 
 // 重置表單和表格資料
