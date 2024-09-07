@@ -228,7 +228,7 @@ function arrayBufferToBase64(buffer) {
     return window.btoa(binary);
 }
 
-// 保存文件功能，使用 Base64 Data URL
+// 保存文件功能，使用 Base64 Data URL，並在保存後自動清空文件名和資料
 function saveFile() {
     const caseNumber = document.getElementById('caseNumber').value;
     if (!caseNumber) {
@@ -275,6 +275,17 @@ function saveFile() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+
+    // 保存文件後自動重整：清空文件名和表格資料
+    resetForm();
+}
+
+// 重置表單和表格資料
+function resetForm() {
+    document.getElementById('caseNumber').value = '';  // 清空文件名
+    const infoTable = document.getElementById('infoTable').getElementsByTagName('tbody')[0];
+    infoTable.innerHTML = '';  // 清空表格資料
+    updateDataCount();  // 更新資料數
 }
 
 
