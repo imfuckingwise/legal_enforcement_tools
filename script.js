@@ -286,10 +286,16 @@ function saveFile() {
 // 顯示保存成功的通知
 function showSuccessAlert() {
     const successAlert = document.getElementById('successAlert');
-    successAlert.classList.remove('d-none'); // 顯示成功通知
+    successAlert.style.display = 'block';
+    successAlert.classList.add('show');
+    successAlert.classList.remove('hide');
     setTimeout(() => {
-        successAlert.classList.add('d-none'); // 3秒後隱藏
-    }, 3000);
+        successAlert.classList.add('hide');
+        successAlert.classList.remove('show');
+        setTimeout(() => {
+            successAlert.style.display = 'none';
+        }, 500);
+    }, 3000);  // 3秒後隱藏
 }
 
 // 重置表單和表格資料
@@ -299,7 +305,6 @@ function resetForm() {
     infoTable.innerHTML = '';  // 清空表格資料
     updateDataCount();  // 更新資料數
 }
-
 
 // 文件導入功能，覆蓋現有資料，並從檔案名自動填入案號
 function importFile() {

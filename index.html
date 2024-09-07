@@ -16,10 +16,11 @@
         <!-- 切換深色模式按鈕 -->
         <button class="btn btn-dark mb-3" onclick="toggleDarkMode()">切換深色模式</button>
 
-        <!-- 成功通知，默認隱藏 -->
-        <div id="successAlert" class="alert alert-success d-none" role="alert">
+        <!-- 彈出式成功通知，默認隱藏 -->
+        <div id="successAlert" class="alert alert-success fade" role="alert" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1050; display: none;">
             文件保存成功！
         </div>
+
 
         <div class="mb-3">
             <label for="caseNumber" class="form-label">请输入案号：</label>
