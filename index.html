@@ -102,8 +102,30 @@
 
     <!-- 調證結果輸出區域 -->
     <div class="container mt-4 d-none" id="outputSection">
-        <h1>調證結果輸出</h1>
-        <p>此功能尚未實作</p>
+        <!-- 新增上傳 XLSX 文件的部分 -->
+        <div class="mb-3">
+            <label for="fileInput" class="form-label">上傳 XLSX 文件：</label>
+            <input type="file" class="form-control" id="fileInput" accept=".xlsx" onchange="handleFileUpload(event)">
+        </div>
+
+        <!-- 顯示 UID、账号类型 和 KYC 狀態的表格 -->
+        <h3>UID、账号类型 和 KYC 狀態</h3>
+        <table class="table table-bordered" id="uidTable">
+            <thead>
+                <tr>
+                    <th>UID</th>
+                    <th>账号类型</th>
+                    <th>KYC 狀態</th>
+                </tr>
+            </thead>
+            <tbody id="uidTableBody">
+                <!-- 這裡顯示提取的 UID 和 账号类型 和 KYC 狀態 -->
+            </tbody>
+        </table>
+
+
+        <!-- 複製 UID 按鈕 -->
+        <button class="btn btn-info" onclick="copyUIDs()">複製所有 UID</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
