@@ -1,5 +1,4 @@
 /* 預設淺色模式 */
-
 body {
     background-color: #f8f9fa;
     color: #000;
@@ -22,13 +21,70 @@ textarea {
     color: #000;
 }
 
+.navbar-light {
+    background-color: #ffffff;
+    color: #000;
+}
+
+.navbar-light .navbar-brand,
+.navbar-light .nav-link {
+    color: #000;
+}
+
+.navbar-light .navbar-nav .nav-link.active {
+    color: #007bff;
+}
+
+.navbar-light .nav-link:hover {
+    color: #0056b3;
+}
+
+/* 按鈕樣式保持 Bootstrap 預設 */
+.btn-primary {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: #fff;
+    border: none;
+}
+
+.btn-success {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    color: #212529;
+    border: none;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+}
+
+.btn-info {
+    background-color: #17a2b8;
+    color: #fff;
+    border: none;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+
+/* 深色模式 */
 .dark-mode {
     background-color: #121212;
     color: #f0f0f0;
 }
-
-
-/* 調整佔位符文字的顏色 */
 
 .dark-mode ::placeholder {
     color: #f0f0f0;
@@ -51,16 +107,54 @@ textarea {
     border: 1px solid #555;
 }
 
-.dark-mode .btn-primary,
-.dark-mode .btn-secondary,
-.dark-mode .btn-success,
-.dark-mode .btn-warning {
-    /* 保留按鈕的 Bootstrap 顏色 */
+/* 按鈕在深色模式下保持一致的背景顏色 */
+.dark-mode .btn-primary {
+    background-color: #007bff;
+    color: #fff;
 }
 
-.dark-mode .btn,
-.dark-mode .form-label {
+.dark-mode .btn-secondary {
+    background-color: #6c757d;
     color: #fff;
+}
+
+.dark-mode .btn-success {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.dark-mode .btn-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.dark-mode .btn-danger {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.dark-mode .btn-info {
+    background-color: #17a2b8;
+    color: #fff;
+}
+
+/* 深色模式的導航列樣式 */
+.dark-mode .navbar {
+    background-color: #333;
+    color: #f0f0f0;
+}
+
+.dark-mode .navbar .navbar-brand,
+.dark-mode .navbar .nav-link {
+    color: #212529;
+}
+
+.dark-mode .navbar .nav-link.active {
+    color: #00aaff;
+}
+
+.dark-mode .navbar .nav-link:hover {
+    color: #00aaff;
 }
 
 /* 成功通知動畫效果 */
