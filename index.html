@@ -111,23 +111,24 @@
         </div>
 
         <!-- 顯示 UID、账号类型 和 KYC 狀態的表格 -->
-        <h3>UID、账号类型 和 KYC 狀態</h3>
+        <h3>UID、账号类型、KYC 狀態</h3>
         <table class="table table-bordered" id="uidTable">
             <thead>
                 <tr>
                     <th>UID</th>
                     <th>账号类型</th>
                     <th>KYC 狀態</th>
+                    <th>操作</th>
                 </tr>
             </thead>
             <tbody id="uidTableBody">
-                <!-- 這裡顯示提取的 UID 和 账号类型 和 KYC 狀態 -->
+                <!-- 這裡顯示提取的資料 -->
             </tbody>
         </table>
 
 
         <!-- 複製 UID 按鈕 -->
-        <button class="btn btn-info" onclick="copyUIDs()">複製所有 UID</button>
+        <button class="btn btn-info" onclick="copyAllUIDs()">複製所有 UID</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>

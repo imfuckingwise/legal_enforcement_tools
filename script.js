@@ -435,7 +435,7 @@ function extractData(data, uidField, accountTypeField, nationalityField) {
     return result;
 }
 
-// 在頁面上顯示 UID、账号类型 和 KYC 狀態
+// 在頁面上顯示 UID、账号类型 和 KYC 狀態，並添加複製按鈕
 function displayUIDs(dataArray) {
     const uidTableBody = document.getElementById('uidTableBody');
     uidTableBody.innerHTML = '';  // 清空表格
@@ -452,20 +452,38 @@ function displayUIDs(dataArray) {
         const kycStatusCell = document.createElement('td');
         kycStatusCell.textContent = data.kycStatus;  // 有 KYC 顯示內容，無 KYC 顯示空白
 
+        const actionCell = document.createElement('td');
+        const copyButton = document.createElement('button');
+        copyButton.textContent = '複製';
+        copyButton.classList.add('btn', 'btn-info', 'btn-sm');
+        copyButton.onclick = function() {
+            copySingleUID(data.uid);
+        };
+        actionCell.appendChild(copyButton);
+
         row.appendChild(uidCell);
         row.appendChild(accountTypeCell);
         row.appendChild(kycStatusCell);
+        row.appendChild(actionCell); // 添加操作按鈕列
         uidTableBody.appendChild(row);
     });
 }
 
-// 複製 UID 到剪貼簿
-function copyUIDs() {
-    const textToCopy = uids.map(item => item.uid).join('\n');
-    navigator.clipboard.writeText(textToCopy).then(() => {
-        alert('UID 已複製到剪貼簿');
+// 複製單個 UID 到剪貼簿
+function copySingleUID(uid) {
+    navigator.clipboard.writeText(uid).then(() => {
+        alert(`UID ${uid} 已複製到剪貼簿`);
     }).catch(err => {
-        alert('複製失敗：' + err);
+        console.error('複製失敗', err);
     });
 }
 
+// 保留複製所有 UID 的功能
+function copyAllUIDs() {
+    const textToCopy = uids.map(item => item.uid).join('\n');
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        alert('所有 UID 已複製到剪貼簿');
+    }).catch(err => {
+        console.error('複製失敗', err);
+    });
+}
