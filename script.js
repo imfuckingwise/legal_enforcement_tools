@@ -1,11 +1,12 @@
 // 顯示不同的功能區
 function showSection(sectionId) {
-    const sections = ['inputSection', 'outputSection'];
+    const sections = ['inputSection', 'outputSection', 'analysisSection'];
     sections.forEach(id => {
         document.getElementById(id).classList.add('d-none');
     });
     document.getElementById(sectionId).classList.remove('d-none');
 }
+
 
 // 切換深色模式
 function toggleDarkMode() {
@@ -485,5 +486,164 @@ function copyAllUIDs() {
         alert('所有 UID 已複製到剪貼簿');
     }).catch(err => {
         console.error('複製失敗', err);
+    });
+}
+
+/////////////////////
+////// 數據分析 //////
+/////////////////////
+
+let excelData = [];
+
+// 文件上傳處理
+function handleFileUploadB(event) {
+    const file = event.target.files[0];
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+
+            let sheet = workbook.Sheets[workbook.SheetNames[0]];
+            excelData = XLSX.utils.sheet_to_json(sheet);
+
+            // 檢查是否有讀取到數據
+            if (excelData.length > 0) {
+                document.getElementById('uploadStatus').textContent = "文件讀取成功";
+            } else {
+                document.getElementById('uploadStatus').textContent = "讀取失敗，文件無內容";
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+}
+
+// 開始分析數據
+function startAnalysis() {
+    const startDateA = document.getElementById('startDateA').value;
+    const endDateA = document.getElementById('endDateA').value;
+    const startDateB = document.getElementById('startDateB').value;
+    const endDateB = document.getElementById('endDateB').value;
+    const triggerPercentage = parseFloat(document.getElementById('triggerPercentage').value);
+
+    if (!startDateA || !endDateA || !startDateB || !endDateB) {
+        alert("請選擇兩個時間區段");
+        return;
+    }
+
+    const filteredDataA = filterDataByDate(startDateA, endDateA);
+    const filteredDataB = filterDataByDate(startDateB, endDateB);
+
+    console.log("篩選出的 A 時間區段數據：", filteredDataA);
+    console.log("篩選出的 B 時間區段數據：", filteredDataB);
+
+    const countryCountA = countCountries(filteredDataA);
+    const countryCountB = countCountries(filteredDataB);
+
+    displayAnalysisResults(countryCountA, countryCountB, triggerPercentage);
+}
+
+// 過濾數據根據「申请编号」中的日期
+function filterDataByDate(startDate, endDate) {
+    // 將選擇的日期轉換為 Date 物件進行比較
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    return excelData.filter(row => {
+        const caseNumber = row['申请编号'];
+
+        // 確保「申请编号」欄位存在且長度足夠
+        if (caseNumber && caseNumber.length >= 8) {
+            const year = caseNumber.substring(0, 4); // 前4個字元代表年
+            const month = caseNumber.substring(4, 6); // 中間2個字元代表月
+            const day = caseNumber.substring(6, 8); // 後2個字元代表日
+
+            // 創建新的日期物件
+            const date = new Date(`${year}-${month}-${day}`);
+
+            // 比較日期區間
+            if (!isNaN(date)) {
+                return date >= start && date <= end;
+            } else {
+                console.log(`無效日期: 申请编号 ${caseNumber}`);
+            }
+        } else {
+            console.log(`无效申请编号: ${caseNumber}`);
+        }
+
+        return false; // 如果日期無效，則排除
+    });
+}
+
+
+// 計算每個國家出現的次數
+function countCountries(data) {
+    let countryCounter = {};
+
+    data.forEach(row => {
+        let country;
+
+        // 根據「是否中国大陆司法机构」來判斷國家
+        if (row['是否中国大陆司法机构'] === '中国大陆') {
+            country = '中国大陆';
+        } else if (row['是否中国大陆司法机构'] === '否' && row['司法机构-所在国家']) {
+            country = row['司法机构-所在国家'].trim().toLowerCase();
+        }
+
+        if (country) {
+            if (countryCounter[country]) {
+                countryCounter[country]++;
+            } else {
+                countryCounter[country] = 1;
+            }
+        }
+    });
+
+    return countryCounter;
+}
+
+// 顯示分析結果
+function displayAnalysisResults(countA, countB, triggerPercentage) {
+    const resultsBody = document.getElementById('analysisResultsBody');
+    resultsBody.innerHTML = ''; // 清空現有結果
+
+    const countries = new Set([...Object.keys(countA), ...Object.keys(countB)]);
+
+    countries.forEach(country => {
+        const countAValue = countA[country] || 0;
+        const countBValue = countB[country] || 0;
+        let growthPercentage = 0;
+
+        if (countAValue > 0) {
+            growthPercentage = ((countBValue - countAValue) / countAValue) * 100;
+        } else if (countBValue > 0) {
+            growthPercentage = 100; // A區段為0且B區段有數據
+        }
+
+        const row = document.createElement('tr');
+
+        const countryCell = document.createElement('td');
+        countryCell.textContent = country;
+
+        const countACell = document.createElement('td');
+        countACell.textContent = countAValue;
+
+        const countBCell = document.createElement('td');
+        countBCell.textContent = countBValue;
+
+        const growthCell = document.createElement('td');
+        growthCell.textContent = growthPercentage.toFixed(2) + '%';
+
+        if (growthPercentage >= triggerPercentage) {
+            row.style.backgroundColor = 'yellow'; // 標示增長異常的國家
+        }
+
+        row.appendChild(countryCell);
+        row.appendChild(countACell);
+        row.appendChild(countBCell);
+        row.appendChild(growthCell);
+
+        resultsBody.appendChild(row);
     });
 }

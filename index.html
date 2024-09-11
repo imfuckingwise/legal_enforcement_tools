@@ -12,25 +12,27 @@
 <body>
     <!-- 導航列 -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">調證工具</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="切換導航列">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="showSection('inputSection')">調證信息錄入</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="showSection('outputSection')">調證結果輸出</a>
-                    </li>
-                </ul>
-                <!-- 深色模式切換按鈕 -->
-                <button class="btn btn-dark" id="toggleDarkMode" onclick="toggleDarkMode()">切換深色模式</button>
-            </div>
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">調證工具</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="切換導航列">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="showSection('inputSection')">調證信息錄入</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="showSection('outputSection')">調證結果輸出</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="showSection('analysisSection')">案件數據分析</a>
+                </li>
+            </ul>
+            <button class="btn btn-dark" id="toggleDarkMode" onclick="toggleDarkMode()">切換深色模式</button>
         </div>
-    </nav>
+    </div>
+</nav>
 
     <!-- 調證信息錄入區域 -->
     <div class="container mt-4" id="inputSection">
@@ -130,6 +132,49 @@
         <!-- 複製 UID 按鈕 -->
         <button class="btn btn-info" onclick="copyAllUIDs()">複製所有 UID</button>
     </div>
+
+    <div class="ccontainer mt-4 d-none" id="analysisSection">
+        <h1>案件數據分析</h1>
+    
+        <!-- 文件上傳 -->
+        <input type="file" id="fileInput" accept=".xlsx" onchange="handleFileUploadB(event)" />
+        <p id="uploadStatus"></p>
+
+        <!-- 選擇時間區段和百分比 -->
+        <div>
+            <label for="startDateA">A 區段開始日期：</label>
+            <input type="date" id="startDateA">
+            <label for="endDateA">A 區段結束日期：</label>
+            <input type="date" id="endDateA">
+        </div>
+        <div>
+            <label for="startDateB">B 區段開始日期：</label>
+            <input type="date" id="startDateB">
+            <label for="endDateB">B 區段結束日期：</label>
+            <input type="date" id="endDateB">
+        </div>
+        <div>
+            <label for="triggerPercentage">異常數據增長觸發百分比：</label>
+            <input type="number" id="triggerPercentage" min="0" max="100" step="1" value="50">
+        </div>
+
+        <!-- 開始分析 -->
+        <button onclick="startAnalysis()">開始分析</button>
+
+        <!-- 顯示分析結果 -->
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>国家</th>
+                    <th>A 區段次數</th>
+                    <th>B 區段次數</th>
+                    <th>增長百分比</th>
+                </tr>
+            </thead>
+            <tbody id="analysisResultsBody"></tbody>
+        </table>
+
+    </div>    
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="script.js"></script>
