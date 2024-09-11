@@ -636,8 +636,8 @@ function displayAnalysisResults(countA, countB, triggerPercentage) {
         growthCell.textContent = growthPercentage.toFixed(2) + '%';
 
         if (growthPercentage >= triggerPercentage) {
-            row.style.backgroundColor = 'yellow'; // 標示增長異常的國家
-        }
+            row.setAttribute('style', 'background-color: red !important;');
+        }        
 
         row.appendChild(countryCell);
         row.appendChild(countACell);
