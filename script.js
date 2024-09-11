@@ -499,6 +499,12 @@ let excelData = [];
 function handleFileUploadB(event) {
     const file = event.target.files[0];
 
+    // 檢查檔案名稱是否包含 "User_Investigation_Info"
+    if (!file.name.includes('客服-执法请求跟进')) {
+        alert('上傳失敗：檔案名稱必須包含 "客服-执法请求跟进"');
+        return;
+    }
+
     if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -507,13 +513,6 @@ function handleFileUploadB(event) {
 
             let sheet = workbook.Sheets[workbook.SheetNames[0]];
             excelData = XLSX.utils.sheet_to_json(sheet);
-
-            // 檢查是否有讀取到數據
-            if (excelData.length > 0) {
-                document.getElementById('uploadStatus').textContent = "文件讀取成功";
-            } else {
-                document.getElementById('uploadStatus').textContent = "讀取失敗，文件無內容";
-            }
         };
         reader.readAsArrayBuffer(file);
     }
