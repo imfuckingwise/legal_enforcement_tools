@@ -176,6 +176,16 @@
     
         <!-- 開始分析 -->
         <button class="btn btn-info mt-3" onclick="startAnalysis()">開始分析</button>
+
+        <!-- 隱藏的統計結果區域 -->
+        <textarea id="exceedingReportContent" style="display:none;"></textarea>
+        <textarea id="topFiveReportContent" style="display:none;"></textarea>
+            
+        <!-- 生成統計報告按鈕 -->
+        <button class="btn btn-warning mt-3" onclick="generateAndCopyExceedingReport()">複製異常增長統計結果</button>
+            
+        <!-- 生成並複製本週案件數量前五名 -->
+        <button class="btn btn-warning mt-3" onclick="generateAndCopyTopFiveReport()">複製本週案件數量前五名</button>
     
         <!-- 顯示分析結果 -->
         <table class="table table-bordered w-75 mt-4">

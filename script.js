@@ -646,3 +646,104 @@ function displayAnalysisResults(countA, countB, triggerPercentage) {
         resultsBody.appendChild(row);
     });
 }
+
+// 單一按鈕生成並複製超過增長百分比的統計結果
+function generateAndCopyExceedingReport() {
+    const resultsBody = document.getElementById('analysisResultsBody').getElementsByTagName('tr');
+    let reportContent = [];
+
+    // 生成超過增長百分比的統計結果並排序
+    for (let row of resultsBody) {
+        const country = row.cells[0].innerText;  // 國家名稱
+        const aCount = parseInt(row.cells[1].innerText);  // A 區段案件數
+        const bCount = parseInt(row.cells[2].innerText);  // B 區段案件數
+        const growthPercentage = parseFloat(row.cells[3].innerText);  // 增長百分比
+
+        if (growthPercentage > 0) {  // 只統計增長的國家
+            reportContent.push({
+                country,
+                aCount,
+                bCount,
+                growthPercentage,
+                formatted: `${country}：+${growthPercentage}% (上週${aCount}件，本週${bCount}件)`
+            });
+        }
+    }
+
+    // 依據增長百分比由大到小排序
+    reportContent.sort((a, b) => b.growthPercentage - a.growthPercentage);
+
+    // 格式化最終結果
+    const finalReport = reportContent.map(item => item.formatted).join('\n');
+
+    // 複製結果到剪貼簿
+    navigator.clipboard.writeText(finalReport).then(() => {
+        alert('超過增長百分比的統計結果已生成並複製到剪貼簿！');
+    }).catch(err => {
+        alert('複製失敗：' + err);
+    });
+}
+
+// 單一按鈕生成並複製本週案件數量前五名
+function generateAndCopyTopFiveReport() {
+    const resultsBody = document.getElementById('analysisResultsBody').getElementsByTagName('tr');
+    let countryCount = {};  // 儲存每個國家及其案件數量的對象
+
+    // 遍歷表格中的每一行數據，收集 B 區段案件數量
+    for (let row of resultsBody) {
+        const country = row.cells[0].innerText;  // 國家名稱
+        const bCount = parseInt(row.cells[2].innerText);  // B 區段案件數
+
+        if (bCount > 0) {  // 只統計本週有案件的國家
+            if (!countryCount[country]) {
+                countryCount[country] = bCount;
+            } else {
+                countryCount[country] += bCount;  // 增加案件數量
+            }
+        }
+    }
+
+    // 將 countryCount 物件轉換為陣列，並根據案件數由大至小排序
+    let sortedCountries = Object.entries(countryCount).sort((a, b) => b[1] - a[1]);
+
+    // 格式化統計前五名
+    let topFiveReport = '';
+    let rankCount = 0;  // 記錄已經輸出的排名數
+    let currentRankValue = -1;  // 用於跟踪當前排名的案件數量
+    let rankGroups = [];  // 儲存相同排名的國家名稱
+    let outputRankCount = 0;  // 紀錄實際已輸出的名次數
+
+    for (let i = 0; i < sortedCountries.length; i++) {
+        const [country, count] = sortedCountries[i];
+
+        if (currentRankValue !== count) {
+            // 如果當前案件數與之前排名不一致，則輸出之前的排名並開始新的排名
+            if (rankGroups.length > 0) {
+                // 格式化輸出前一個排名的國家
+                topFiveReport += `${currentRankValue}件：${rankGroups.join('、')}\n`;
+                rankGroups = [];  // 清空分組
+                outputRankCount++;  // 增加已輸出的名次數
+            }
+
+            // 檢查已輸出的名次數是否超過五個
+            if (outputRankCount >= 5) break;
+
+            currentRankValue = count;  // 更新當前排名值
+            rankCount++;  // 增加排名數
+        }
+
+        rankGroups.push(country);  // 將當前國家加入當前排名分組
+    }
+
+    // 輸出最後一組的排名
+    if (rankGroups.length > 0 && outputRankCount < 5) {
+        topFiveReport += `${currentRankValue}件：${rankGroups.join('、')}\n`;
+    }
+
+    // 複製結果到剪貼簿
+    navigator.clipboard.writeText(topFiveReport.trim()).then(() => {
+        alert('本週案件數量前五名已生成並複製到剪貼簿！');
+    }).catch(err => {
+        alert('複製失敗：' + err);
+    });
+}
