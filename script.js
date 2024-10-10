@@ -747,3 +747,60 @@ function generateAndCopyTopFiveReport() {
         alert('複製失敗：' + err);
     });
 }
+
+// 輸出PDF報告
+function generatePDFReport() {
+    const doc = new jsPDF();
+    
+    // 使用支援中文的字體（NotoSansTC 是台灣繁體字體）
+    doc.addFont('NotoSansTC-Regular.ttf', 'NotoSansTC', 'normal');
+    doc.setFont('NotoSansTC'); // 設定字體
+    doc.setFontSize(16);
+
+    // 設定標題
+    doc.text("案件數據分析報告", 14, 20);
+    
+    // 插入日期
+    const date = new Date().toLocaleDateString();
+    doc.text(`生成日期： ${date}`, 14, 30);
+
+    // 插入區間說明
+    const startDateA = document.getElementById('startDateA').value;
+    const endDateA = document.getElementById('endDateA').value;
+    const startDateB = document.getElementById('startDateB').value;
+    const endDateB = document.getElementById('endDateB').value;
+    const triggerPercentage = document.getElementById('triggerPercentage').value;
+
+    let sectionInfo = `分析區段：
+    A 區段： ${startDateA} - ${endDateA}
+    B 區段： ${startDateB} - ${endDateB}
+    異常數據增長觸發百分比： ${triggerPercentage}%`;
+
+    doc.text(sectionInfo, 14, 40);
+
+    // 插入「超過增長百分比的統計結果」
+    let growthData = document.getElementById("growthAnalysisResults").innerText;
+    doc.text("超過增長百分比的統計結果：", 14, 60);
+    doc.setFontSize(10);
+    const growthLines = growthData.split("\n");
+    let growthCurrentY = 70;
+    growthLines.forEach(line => {
+        doc.text(line, 14, growthCurrentY);
+        growthCurrentY += 6;
+    });
+
+    // 插入「本週案件數量前五名」
+    let topFiveData = document.getElementById("topFiveResults").innerText;
+    doc.setFontSize(16);
+    doc.text("本週案件數量前五名：", 14, growthCurrentY + 10);
+    doc.setFontSize(10);
+    const topFiveLines = topFiveData.split("\n");
+    let topFiveCurrentY = growthCurrentY + 20;
+    topFiveLines.forEach(line => {
+        doc.text(line, 14, topFiveCurrentY);
+        topFiveCurrentY += 6;
+    });
+
+    // 下載 PDF
+    doc.save("案件數據分析報告.pdf");
+}
