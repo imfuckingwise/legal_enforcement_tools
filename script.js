@@ -157,10 +157,18 @@ function isValidSOLAddress(address) {
     return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address);
 }
 
+function isValidXMRAddress(address) {
+    // Monero 標準地址為 95 個字符，且以 '4' 或 '8' 開頭
+    // Monero 集成地址為 106 個字符，且以 '4' 或 '8' 開頭
+    const standardPattern = /^[48][0-9A-Za-z]{94}$/; // 標準地址格式
+    const integratedPattern = /^[48][0-9A-Za-z]{105}$/; // 集成地址格式
+    return standardPattern.test(address) || integratedPattern.test(address);
+}
+
 // 針對不同鏈的 TXID 檢查
 function isValidTXID(txid) {
     return isValidBTCTXID(txid) || isValidEVMTXID(txid) || isValidLTCTXID(txid) ||
-        isValidTRONTXID(txid) || isValidSOLTXID(txid);
+        isValidTRONTXID(txid) || isValidSOLTXID(txid) || isValidXMRTXID;
 }
 
 // BTC 的 TXID 格式
@@ -191,6 +199,12 @@ function isValidTRONTXID(txid) {
 function isValidSOLTXID(txid) {
     // Solana 的 TXID 是88個字符，包含字母和數字
     return /^[A-Za-z0-9]{88}$/.test(txid);
+}
+
+// XMR 的 TXID 格式
+function isValidXMRTXID(txid) {
+    // Monero 的 TXID 為 64 個字符，僅包含十六進制字符 (0-9, a-f, A-F)
+    return /^[a-fA-F0-9]{64}$/.test(txid);
 }
 
 // 批量新增功能，從主視窗的輸入框中讀取
@@ -227,6 +241,7 @@ function detectInfoType(infoDetail) {
     if (isValidLTCAddress(infoDetail)) return "充值地址";
     if (isValidTRONAddress(infoDetail)) return "充值地址";
     if (isValidSOLAddress(infoDetail)) return "充值地址";
+    if (isValidXMRAddress(infoDetail)) return "充值地址";
     if (isValidTXID(infoDetail)) return "TXID";
     return null;
 }
