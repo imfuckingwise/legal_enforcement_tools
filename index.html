@@ -136,39 +136,62 @@
 
 	<!-- 調證結果輸出區域 -->
 	<div class="container mt-4 d-none" id="outputSection">
-		<h1>調證結果輸出</h1>
+        <h1>調證結果輸出</h1>
+    
+        <!-- 上傳多個 XLSX -->
+        <div class="mb-3">
+            <label for="multiFileInput" class="form-label">上傳多個 XLSX 文件：</label>
+            <input 
+                type="file"
+                class="form-control"
+                id="multiFileInput"
+                accept=".xlsx"
+                multiple
+                onchange="handleMultipleFiles(event)"
+            >
+        </div>
+    
+        <!-- 顯示已上傳檔案清單 -->
+        <h5>已上傳檔案：</h5>
+        <ul id="uploadedFileList"></ul>
+    
+        <!-- 按鈕：只有在按下「分析」後，才會將所有檔案解析並顯示 -->
+        <button class="btn btn-primary mb-3" onclick="analyzeFiles()">
+            分析
+        </button>
+    
+        <!-- 分析結果表格 (UID / Type / Information) -->
+        <h3>分析結果</h3>
 
-		<!-- 新增上傳 XLSX 文件的部分 -->
-		<div class="mb-3">
-			<label for="fileInput" class="form-label">上傳 XLSX 文件：</label>
-			<input 
-				type="file" 
-				class="form-control" 
-				id="fileInput" 
-				accept=".xlsx" 
-				onchange="handleFileUpload(event)"
-			>
-		</div>
+        <!-- 在這裡新增顯示資料數的元素 -->
+        <p>
+        	目前資料數：<span id="analysisTotalCount">0</span>
+        </p>
 
-		<!-- 顯示 UID、账号类型 和 KYC 狀態的表格 -->
-		<h3>UID、账号类型、KYC 狀態</h3>
-		<table class="table table-bordered" id="uidTable">
-			<thead>
-				<tr>
-					<th>UID</th>
-					<th>账号类型</th>
-					<th>KYC 狀態</th>
-					<th>操作</th>
-				</tr>
-			</thead>
-			<tbody id="uidTableBody">
-				<!-- 這裡顯示提取的資料 -->
-			</tbody>
-		</table>
+        <!-- 顯示涉案 UID 數 -->
+        <p>
+        	涉案 UID 數 (排除重複)：<span id="uidCount">0</span>
+        </p>
 
-		<!-- 複製 UID 按鈕 -->
-		<button class="btn btn-info" onclick="copyAllUIDs()">複製所有 UID</button>
-	</div>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>UID</th>
+                    <th>Type</th>
+                    <th>Information</th>
+                </tr>
+            </thead>
+            <tbody id="analysisResultBody"></tbody>
+        </table>
+    
+        <!-- 兩個按鈕：複製UID 與 複製TXID/充值地址 -->
+        <button class="btn btn-info mt-2" onclick="copyAllUniqueUIDs()">
+            複製所有 UID (排除重複)
+        </button>
+        <button class="btn btn-info mt-2" onclick="copyAllTxidAndAddress()">
+            複製所有 TXID 與 充值地址 (排除重複)
+        </button>
+    </div>
 
 	<!-- 案件數據分析-->
 	<div class="ccontainer d-none mt-4" id="analysisSection">
