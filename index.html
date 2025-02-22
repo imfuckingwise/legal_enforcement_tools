@@ -159,6 +159,14 @@
         <button class="btn btn-primary mb-3" onclick="analyzeFiles()">
             分析
         </button>
+
+        <!-- 兩個按鈕：複製UID 與 複製TXID/充值地址 -->
+        <button class="btn btn-info mt-2" onclick="copyAllUniqueUIDs()">
+            複製所有 UID (排除重複)
+        </button>
+        <button class="btn btn-info mt-2" onclick="copyAllTxidAndAddress()">
+            複製所有 TXID 與 充值地址 (排除重複)
+        </button>
     
         <!-- 分析結果表格 (UID / Type / Information) -->
         <h3>分析結果</h3>
@@ -183,14 +191,7 @@
             </thead>
             <tbody id="analysisResultBody"></tbody>
         </table>
-    
-        <!-- 兩個按鈕：複製UID 與 複製TXID/充值地址 -->
-        <button class="btn btn-info mt-2" onclick="copyAllUniqueUIDs()">
-            複製所有 UID (排除重複)
-        </button>
-        <button class="btn btn-info mt-2" onclick="copyAllTxidAndAddress()">
-            複製所有 TXID 與 充值地址 (排除重複)
-        </button>
+
     </div>
 
 	<!-- 案件數據分析-->
