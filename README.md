@@ -30,11 +30,11 @@
 ## 特色功能
 
 - **多區塊鏈地址與 TXID 驗證**  
-  支援以下地址驗證：
+  支援以下公鏈：
   - **BTC**：Legacy (P2PKH)、Nested Segwit (P2SH-P2WPKH)、Native Segwit (P2WPKH) 及 Taproot (P2TR)
-  - **EVM**：例如 Ethereum 地址
-  - **LTC、TRON、SOL、XMR**：原生地址驗證
-  - **Kaspa、Sui、Aptos、ADA**：新增支援其地址及 TXID 驗證
+  - **EVM**：例如 ETH、BSC、Base、OP
+  - **LTC、TRON、SOL、XMR**
+  - **Kaspa、Sui、Aptos、ADA**
 
 - **文件操作**  
   - 支援 XLSX 文件的匯出與導入。
