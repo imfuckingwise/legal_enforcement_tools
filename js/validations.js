@@ -9,12 +9,18 @@ function isValidBTCAddress(address) {
 	const nativeSegwitPattern	= /^bc1q[a-z0-9]{8,87}$/;						// Native Segwit (P2WPKH)：以 bc1q 開頭（簡化檢查）
 	const taprootPattern		= /^bc1p[a-z0-9]{8,87}$/;						// Taproot (P2TR)：以 bc1p 開頭（簡化檢查）
 	const lowerAddress			= address.toLowerCase();
+	
 	return (
 		legacyPattern.test(address) ||
 		nestedSegwitPattern.test(address) ||
 		nativeSegwitPattern.test(lowerAddress) ||
 		taprootPattern.test(lowerAddress)
 	);
+}
+
+function isValidBTCTxID(txid) {
+	// BTC 的 TxID 通常為 64 位十六進制字元
+	return /^[a-fA-F0-9]{64}$/.test(txid);
 }
 
 // ====================

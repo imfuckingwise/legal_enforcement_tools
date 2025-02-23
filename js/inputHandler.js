@@ -44,8 +44,6 @@ function formatPhoneNumberAuto(phoneStr) {
 	return cleaned;
 }
 
-
-
 /**
  * 處理單筆輸入：
  * - 檢查輸入是否為空
@@ -71,14 +69,6 @@ function handleSingleInput() {
 		infoDetail = formatPhoneNumberAuto(infoDetail);
 	}
 	
-	// 若勾選檢查格式且信息類型為充值地址或 TXID，則進行驗證
-	if (checkFormat && (infoType === "充值地址" || infoType === "TXID")) {
-		if (!isValidInfo(infoType, infoDetail)) {
-			alert("无效的" + infoType + ": " + infoDetail);
-			return;
-		}
-	}
-	
 	addRow(infoType, infoDetail);
 	document.getElementById("infoDetail").value = "";
 }
@@ -97,8 +87,11 @@ function handleBulkInput() {
 	var lines = bulkText.split("\n");
 	lines.forEach(function(line) {
 		var detail = line.trim();
+
 		if (!detail) return;
+
 		var infoType = detectInfoType(detail);
+
 		if (infoType) {
 			addRow(infoType, detail);
 		} else {
@@ -146,14 +139,14 @@ function updateDataCount() {
 
 /**
  * 根據輸入內容判斷信息類型：
- * 若符合 BTC、Kaspa、Sui、Aptos 地址格式，視為 "充值地址"；
+ * 若符合 地址格式，視為 "充值地址"；
  * 若符合 TXID 格式，視為 "TXID"。
  */
 function detectInfoType(infoDetail) {
-	if (isValidBTCAddress(infoDetail)) return "充值地址";
-	if (isValidKaspaAddress(infoDetail) || isValidSuiAddress(infoDetail) || isValidAptosAddress(infoDetail))
+	if (isValidBTCAddress(infoDetail) || isValidEVMAddress(infoDetail) || isValidLTCAddress(infoDetail) || isValidTRONAddress(infoDetail) ||  isValidSOLAddress(infoDetail) || isValidXMRAddress(infoDetail) || isValidKaspaAddress(infoDetail) || isValidSuiAddress(infoDetail) || isValidAptosAddress(infoDetail) || isValidADAAddress(infoDetail) )
 		return "充值地址";
-	if (isValidKaspaTxID(infoDetail) || isValidSuiTxID(infoDetail) || isValidAptosTxID(infoDetail))
+	
+	if (isValidBTCTxID(infoDetail) || isValidEVMTxID(infoDetail) || isValidLTCTxID(infoDetail) || isValidTRONTxID(infoDetail) || isValidSOLTxID(infoDetail) || isValidXMRTxID(infoDetail) || isValidKaspaTxID(infoDetail) || isValidSuiTxID(infoDetail) || isValidAptosTxID(infoDetail) || isValidADATxID(infoDetail))
 		return "TXID";
 	return null;
 }
