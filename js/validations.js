@@ -49,7 +49,7 @@ function isValidLTCAddress(address) {
 	return p2pkhPattern.test(address) || bech32Pattern.test(address);
 }
 
-function isValidLTCTXID(txid) {
+function isValidLTCTxID(txid) {
 	// 假設 LTC TxID 為 64 個十六進制字元
 	return /^[a-fA-F0-9]{64}$/.test(txid);
 }
@@ -90,7 +90,7 @@ function isValidXMRAddress(address) {
 	return standardPattern.test(address) || integratedPattern.test(address);
 }
 
-function isValidXMRTXID(txid) {
+function isValidXMRTxID(txid) {
 	// 假設 XMR TxID 為 64 個十六進制字元
 	return /^[a-fA-F0-9]{64}$/.test(txid);
 }
@@ -169,8 +169,9 @@ function isValidInfo(infoType, infoDetail) {
 			);
 		case "TXID":
 			return (
+				isValidBTCTxID(infoDetail) ||
 				isValidEVMTxID(infoDetail) ||
-				isValidLTCTXID(infoDetail) ||
+				isValidLTCTxID(infoDetail) ||
 				isValidTRONTxID(infoDetail) ||
 				isValidSOLTxID(infoDetail) ||
 				isValidXMRTXID(infoDetail) ||
@@ -203,8 +204,8 @@ window.isValidAptosTxID		= isValidAptosTxID;
 window.isValidADAAddress	= isValidADAAddress;
 window.isValidADATxID		= isValidADATxID;
 window.isValidEVMTxID		= isValidEVMTxID;
-window.isValidLTCTXID		= isValidLTCTXID;
+window.isValidLTCTxID		= isValidLTCTxID;
 window.isValidTRONTxID		= isValidTRONTxID;
 window.isValidSOLTxID		= isValidSOLTxID;
-window.isValidXMRTXID		= isValidXMRTXID;
+window.isValidXMRTxID		= isValidXMRTxID;
 window.isValidInfo		= isValidInfo;

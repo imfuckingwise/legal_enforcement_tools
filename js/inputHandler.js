@@ -76,30 +76,41 @@ function handleSingleInput() {
 /**
  * 處理批量輸入：
  * - 以換行分割輸入的內容，逐行處理
+ * - 移除所有空白（含行內空格）與雙引號、單引號，將結果視為單一筆資料
  */
 function handleBulkInput() {
-	var bulkText = document.getElementById("bulkInput").value;
+	const bulkText = document.getElementById("bulkInput").value;
 	if (!bulkText) {
 		alert("批量信息不能为空");
 		return;
 	}
-	
-	var lines = bulkText.split("\n");
-	lines.forEach(function(line) {
-		var detail = line.trim();
 
+	// 以換行拆分
+	const lines = bulkText.split("\n");
+	lines.forEach(function(line) {
+		// 移除所有引號與空白字元
+		// [\s] 代表所有空白字元（含空格、tab、換行等）
+		// ["'] 代表雙引號和單引號
+		// 整合後使用全域修飾 /g
+		let detail = line.replace(/["'\s]/g, "");
+
+		// 若處理後的字串為空，則跳過
 		if (!detail) return;
 
-		var infoType = detectInfoType(detail);
-
+		// 檢測資料類型
+		const infoType = detectInfoType(detail);
 		if (infoType) {
 			addRow(infoType, detail);
 		} else {
 			alert("无效的地址或TXID: " + detail);
 		}
 	});
+
+	// 清空批量輸入框
 	document.getElementById("bulkInput").value = "";
 }
+
+
 
 /**
  * 新增一列資料到調證信息表格
