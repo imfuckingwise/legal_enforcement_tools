@@ -1,142 +1,139 @@
 // inputHandler.js
 
-// 添加信息
-function addInfo() {
-	const caseNumber = document.getElementById('caseNumber').value;
-	const infoType = document.getElementById('infoType').value;
-	const infoDetail = document.getElementById('infoDetail').value;
-	const checkFormat = document.getElementById('checkFormat').checked;
-
+/**
+ * 處理單筆輸入：
+ * 1. 檢查輸入是否為空
+ * 2. 若勾選檢查格式，則依 infoType 使用 isValidInfo() 驗證
+ * 3. 驗證通過後呼叫 addRow() 新增至表格
+ */
+function handleSingleInput() {
+	var caseNumber = document.getElementById("caseNumber").value;
+	var infoType = document.getElementById("infoType").value;
+	var infoDetail = document.getElementById("infoDetail").value.trim();
+	var checkFormat = document.getElementById("checkFormat").checked;
+	
 	if (!infoDetail) {
-		alert('信息内容不能为空');
+		alert("信息内容不能为空");
 		return;
 	}
-
-	// 如果勾選了「檢查格式」，則檢查地址或TXID的有效性
-	if (
-		checkFormat &&
-		(infoType === "充值地址" || infoType === "TXID") &&
-		!isValidFormat(infoType, infoDetail)
-	) {
-		alert(`无效的${infoType}: ${infoDetail}`);
-		return;
+	
+	if (checkFormat && (infoType === "充值地址" || infoType === "TXID")) {
+		if (!isValidInfo(infoType, infoDetail)) {
+			alert("无效的" + infoType + ": " + infoDetail);
+			return;
+		}
 	}
-
+	
 	addRow(infoType, infoDetail);
-	document.getElementById('infoDetail').value = ''; // 清空输入框
+	document.getElementById("infoDetail").value = "";
 }
 
-// 根據 infoType 決定要不要檢查地址或 TXID
-function isValidFormat(infoType, infoDetail) {
-	if (infoType === "充值地址") {
-		return (
-			isValidBTCAddress(infoDetail) ||
-			isValidEVMAddress(infoDetail) ||
-			isValidLTCAddress(infoDetail) ||
-			isValidTRONAddress(infoDetail) ||
-			isValidSOLAddress(infoDetail) ||
-			isValidXMRAddress(infoDetail)
-		);
+/**
+ * 處理批量輸入：
+ * 1. 按行分割輸入
+ * 2. 針對每行呼叫 detectInfoType() 判斷類型，若有效則新增
+ */
+function handleBulkInput() {
+	var bulkText = document.getElementById("bulkInput").value;
+	if (!bulkText) {
+		alert("批量信息不能为空");
+		return;
 	}
-	if (infoType === "TXID") {
-		return isValidTXID(infoDetail);
-	}
-	return true;
+	
+	var lines = bulkText.split("\n");
+	lines.forEach(function(line) {
+		var detail = line.trim();
+		if (!detail) return;
+		var infoType = detectInfoType(detail);
+		if (infoType) {
+			addRow(infoType, detail);
+		} else {
+			alert("无效的地址或TXID: " + detail);
+		}
+	});
+	document.getElementById("bulkInput").value = "";
 }
 
-// 添加表格行
+/**
+ * 新增一列資料到調證信息表格
+ */
 function addRow(infoType, infoDetail) {
-	const infoTable = document.getElementById('infoTable').getElementsByTagName('tbody')[0];
-	const newRow = infoTable.insertRow();
-
-	const delCell = newRow.insertCell(0);
-	const infoTypeCell = newRow.insertCell(1);
-	const infoDetailCell = newRow.insertCell(2);
-
-	delCell.innerHTML = `<button class="btn btn-danger btn-sm" onclick="deleteRow(this)">刪除</button>`;
-	infoTypeCell.innerText = infoType;
-	infoDetailCell.innerText = infoDetail;
-
-	// 更新資料數
+	var tbody = document.getElementById("infoTable").getElementsByTagName("tbody")[0];
+	var newRow = tbody.insertRow();
+	
+	var cellDelete = newRow.insertCell(0);
+	var cellType = newRow.insertCell(1);
+	var cellDetail = newRow.insertCell(2);
+	
+	cellDelete.innerHTML = '<button class="btn btn-danger btn-sm" onclick="removeRow(this)">刪除</button>';
+	cellType.innerText = infoType;
+	cellDetail.innerText = infoDetail;
+	
 	updateDataCount();
 }
 
-// 刪除單個行
-function deleteRow(btn) {
-	const row = btn.parentNode.parentNode;
+/**
+ * 刪除指定資料列
+ */
+function removeRow(button) {
+	var row = button.parentNode.parentNode;
 	row.parentNode.removeChild(row);
 	updateDataCount();
 }
 
-// 複製所有資料到剪貼簿
-function copyAllData() {
-	const infoTable = document.getElementById('infoTable').getElementsByTagName('tbody')[0];
-	const rows = infoTable.rows;
-	let allData = '';
-
-	for (let i = 0; i < rows.length; i++) {
-		const infoType = rows[i].cells[1].innerText;
-		const infoDetail = rows[i].cells[2].innerText;
-		allData += `${infoType}：${infoDetail}\n`;
-	}
-
-	if (allData) {
-		navigator.clipboard.writeText(allData)
-			.then(() => alert('所有資料已複製到剪貼簿！'))
-			.catch(err => console.error('複製失敗', err));
-	} else {
-		alert('沒有可複製的資料！');
-	}
-}
-
-// 刪除所有資料
-function deleteAllData() {
-	const infoTable = document.getElementById('infoTable').getElementsByTagName('tbody')[0];
-	infoTable.innerHTML = '';
-	updateDataCount();
-}
-
-// 更新資料數
+/**
+ * 更新表格下方顯示的資料筆數
+ */
 function updateDataCount() {
-	const infoTable = document.getElementById('infoTable').getElementsByTagName('tbody')[0];
-	const rowCount = infoTable.rows.length;
-	document.getElementById('dataCount').innerText = rowCount;
+	var tbody = document.getElementById("infoTable").getElementsByTagName("tbody")[0];
+	var count = tbody.rows.length;
+	document.getElementById("dataCount").innerText = count;
 }
 
-// 批量新增功能，從主視窗的輸入框中讀取
-function bulkAddInfoFromMain() {
-	const bulkText = document.getElementById('bulkInput').value;
-	if (!bulkText) {
-		alert('批量信息不能为空');
-		return;
-	}
-
-	const infoList = bulkText.split("\n");
-
-	infoList.forEach(infoDetail => {
-		const detail = infoDetail.trim();
-		if (!detail) return;
-
-		const infoType = detectInfoType(detail);
-		if (infoType) {
-			addRow(infoType, detail);
-		} else {
-			alert(`无效的地址或TXID: ${detail}`);
-		}
-	});
-
-	// 清空批量輸入框
-	document.getElementById('bulkInput').value = '';
-}
-
-// 根據內容檢測信息類型
+/**
+ * 根據輸入內容判斷信息類型：
+ * 若符合 BTC、Kaspa、Sui、Aptos 地址格式，視為 "充值地址"；
+ * 若符合 TXID 格式，視為 "TXID"。
+ */
 function detectInfoType(infoDetail) {
 	if (isValidBTCAddress(infoDetail)) return "充值地址";
-	if (isValidEVMAddress(infoDetail)) return "充值地址";
-	if (isValidLTCAddress(infoDetail)) return "充值地址";
-	if (isValidTRONAddress(infoDetail)) return "充值地址";
-	if (isValidSOLAddress(infoDetail)) return "充值地址";
-	if (isValidXMRAddress(infoDetail)) return "充值地址";
-	if (isValidTXID(infoDetail)) return "TXID";
+	if (isValidKaspaAddress(infoDetail) || isValidSuiAddress(infoDetail) || isValidAptosAddress(infoDetail))
+		return "充值地址";
+	if (isValidKaspaTxID(infoDetail) || isValidSuiTxID(infoDetail) || isValidAptosTxID(infoDetail))
+		return "TXID";
 	return null;
+}
+
+/**
+ * 複製所有已輸入資料到剪貼簿（依行以換行分隔）
+ */
+function copyAllData() {
+	var tbody = document.getElementById("infoTable").getElementsByTagName("tbody")[0];
+	var rows = tbody.rows;
+	var allData = "";
+	for (var i = 0; i < rows.length; i++) {
+		var type = rows[i].cells[1].innerText;
+		var detail = rows[i].cells[2].innerText;
+		allData += type + "：" + detail + "\n";
+	}
+	if (allData) {
+		navigator.clipboard.writeText(allData)
+			.then(function() {
+				alert("所有資料已複製到剪貼簿！");
+			})
+			.catch(function(err) {
+				console.error("複製失敗", err);
+			});
+	} else {
+		alert("沒有可複製的資料！");
+	}
+}
+
+/**
+ * 刪除所有資料列
+ */
+function deleteAllData() {
+	var tbody = document.getElementById("infoTable").getElementsByTagName("tbody")[0];
+	tbody.innerHTML = "";
+	updateDataCount();
 }
