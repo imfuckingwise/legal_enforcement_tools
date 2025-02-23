@@ -33,8 +33,7 @@
   支援以下公鏈：
   - **BTC**：Legacy (P2PKH)、Nested Segwit (P2SH-P2WPKH)、Native Segwit (P2WPKH) 及 Taproot (P2TR)
   - **EVM**：例如 ETH、BSC、Base、OP
-  - **LTC、TRON、SOL、XMR**
-  - **Kaspa、Sui、Aptos、ADA**
+  - **LTC、TRON、SOL、XMR、Kaspa、Sui、Aptos、ADA**
 
 - **文件操作**  
   - 支援 XLSX 文件的匯出與導入。
