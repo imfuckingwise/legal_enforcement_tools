@@ -55,7 +55,6 @@ function handleSingleInput() {
 	var caseNumber = document.getElementById("caseNumber").value;
 	var infoType = document.getElementById("infoType").value;
 	var infoDetail = document.getElementById("infoDetail").value.trim();
-	var checkFormat = document.getElementById("checkFormat").checked;
 	// 取得 "手機號碼自動加上國碼" 勾選狀態
 	var autoPhoneFormat = document.getElementById("autoPhoneFormat") ? document.getElementById("autoPhoneFormat").checked : false;
 	
