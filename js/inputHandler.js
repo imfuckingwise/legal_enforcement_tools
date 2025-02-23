@@ -86,11 +86,9 @@ function handleSingleInput() {
 /**
  * 處理批量輸入：
  * - 以換行分割輸入的內容，逐行處理
- * - 若信息類型為「手机号码」且勾選自動加國碼，則格式化每行號碼
  */
 function handleBulkInput() {
 	var bulkText = document.getElementById("bulkInput").value;
-	var autoPhoneFormat = document.getElementById("autoPhoneFormat") ? document.getElementById("autoPhoneFormat").checked : false;
 	if (!bulkText) {
 		alert("批量信息不能为空");
 		return;
@@ -100,10 +98,6 @@ function handleBulkInput() {
 	lines.forEach(function(line) {
 		var detail = line.trim();
 		if (!detail) return;
-		// 若輸入信息類型為「手机号码」且選擇自動格式化，則格式化每行號碼
-		if (document.getElementById("infoType").value === "手机号码" && autoPhoneFormat) {
-			detail = formatPhoneNumberAuto(detail);
-		}
 		var infoType = detectInfoType(detail);
 		if (infoType) {
 			addRow(infoType, detail);
