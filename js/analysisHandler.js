@@ -167,11 +167,16 @@ function generateAndCopyExceedingReport() {
 		.catch(err => alert('複製失敗：' + err));
 }
 
-// 生成並複製「本週案件數量前五名」
-function generateAndCopyTopFiveReport() {
-	const resultsBody = document
-		.getElementById('analysisResultsBody')
-		.getElementsByTagName('tr');
+// 生成並複製「本週案件數量前N名」
+function generateAndCopyTopNReport() {
+	// 取得使用者輸入的數字，若無效則預設 5
+	let topN = parseInt(document.getElementById('topNInput').value);
+	if (isNaN(topN) || topN <= 0) {
+		topN = 5;
+	}
+
+	// 從分析結果表格中取得每個國家及其案件數（假設 B 區段案件數在第三欄）
+	const resultsBody = document.getElementById('analysisResultsBody').getElementsByTagName('tr');
 	let countryCount = {};
 
 	for (let row of resultsBody) {
@@ -182,9 +187,11 @@ function generateAndCopyTopFiveReport() {
 		}
 	}
 
+	// 將 countryCount 轉成陣列，根據案件數從大到小排序
 	let sortedCountries = Object.entries(countryCount).sort((a, b) => b[1] - a[1]);
 
-	let topFiveReport = '';
+	// 依據排序結果產生報告：若相同案件數則列為同一排名
+	let report = '';
 	let currentRankValue = -1;
 	let rankGroups = [];
 	let outputRankCount = 0;
@@ -194,22 +201,26 @@ function generateAndCopyTopFiveReport() {
 
 		if (currentRankValue !== count) {
 			if (rankGroups.length > 0) {
-				topFiveReport += `${currentRankValue}件：${rankGroups.join('、')}\n`;
+				report += `${currentRankValue}件：${rankGroups.join('、')}\n`;
 				rankGroups = [];
 				outputRankCount++;
 			}
-			if (outputRankCount >= 5) break;
-
+			if (outputRankCount >= topN) break;
 			currentRankValue = count;
 		}
 		rankGroups.push(country);
 	}
-
-	if (rankGroups.length > 0 && outputRankCount < 5) {
-		topFiveReport += `${currentRankValue}件：${rankGroups.join('、')}\n`;
+	if (rankGroups.length > 0 && outputRankCount < topN) {
+		report += `${currentRankValue}件：${rankGroups.join('、')}\n`;
 	}
 
-	navigator.clipboard.writeText(topFiveReport.trim())
-		.then(() => alert('本週案件數量前五名已生成並複製到剪貼簿！'))
-		.catch(err => alert('複製失敗：' + err));
+	// 複製結果到剪貼簿
+	navigator.clipboard.writeText(report.trim())
+		.then(() => {
+			alert(`前 ${topN} 名案件數量已生成並複製到剪貼簿！`);
+		})
+		.catch(err => {
+			alert('複製失敗：' + err);
+		});
 }
+

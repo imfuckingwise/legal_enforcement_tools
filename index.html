@@ -262,9 +262,13 @@
 		</button>
 
 		<!-- 生成並複製本週案件數量前五名 -->
-		<button class="btn btn-warning mt-3" onclick="generateAndCopyTopFiveReport()">
-			複製B區段案件數量前五名
-		</button>
+		<div class="d-flex align-items-center mb-3">
+			<label for="topNInput" class="form-label me-2 mb-0">前</label>
+			<input type="number" id="topNInput" class="form-control form-control-sm me-2" value="5" min="1" style="width: 80px;">
+			<span class="me-2">名</span>
+			<button class="btn btn-info btn-sm" onclick="generateAndCopyTopNReport()">複製前 N 名案件數量</button>
+		</div>
+		
 
 		<!-- 顯示分析結果 -->
 		<table class="table table-bordered w-75 mt-4">
