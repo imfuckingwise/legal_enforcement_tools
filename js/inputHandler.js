@@ -1,22 +1,77 @@
 // inputHandler.js
 
 /**
+ * 使用 libphonenumber-js 解析以 "+" 開頭的國際號碼，
+ * 僅在「國碼」與「本地號碼」之間放一個 dash，格式為：<國碼>-<本地號碼>。
+ *
+ * 若號碼不是以 "+" 開頭，則採用簡單啟發式處理：
+ * 1. 移除所有空格、括號、連字號。
+ * 2. 若以 "0" 開頭且長度為 10，假設為台灣手機：回傳 "886-後9碼"。
+ * 3. 若長度大於 10，假設前面部分為國碼：國碼長度 = 總長度 - 10。
+ * 4. 其他情況下直接回傳清理後的數字。
+ */
+function formatPhoneNumberAuto(phoneStr) {
+	// 移除空格、括號、連字號
+	let cleaned = phoneStr.replace(/[\s\-\(\)]/g, "");
+
+	// 如果以 "+" 開頭，嘗試用 libphonenumber-js 解析
+	if (cleaned.startsWith("+")) {
+		try {
+			const phoneNumber = libphonenumber.parsePhoneNumberFromString(cleaned);
+			if (phoneNumber) {
+				return phoneNumber.countryCallingCode + "-" + phoneNumber.nationalNumber;
+			}
+		} catch (e) {
+			console.error("解析國際號碼錯誤:", e);
+		}
+		// 若解析失敗，移除 "+" 後繼續下方啟發式
+		cleaned = cleaned.substring(1);
+	}
+
+	// 啟發式處理：沒有 "+" 的情況
+	// 若以 "0" 開頭且長度為 10，假設為台灣手機
+	if (cleaned.startsWith("0") && cleaned.length === 10) {
+		return "886-" + cleaned.substring(1);
+	}
+
+	// 若長度 > 10，假設前面部分為國碼
+	if (cleaned.length > 10) {
+		let countryCodeLength = cleaned.length - 10;
+		return cleaned.substring(0, countryCodeLength) + "-" + cleaned.substring(countryCodeLength);
+	}
+
+	// 其他情況，直接回傳清理後的數字
+	return cleaned;
+}
+
+
+
+/**
  * 處理單筆輸入：
- * 1. 檢查輸入是否為空
- * 2. 若勾選檢查格式，則依 infoType 使用 isValidInfo() 驗證
- * 3. 驗證通過後呼叫 addRow() 新增至表格
+ * - 檢查輸入是否為空
+ * - 如果信息類型為「手机号码」且勾選了「手機號碼自動加上國碼」，則自動格式化號碼
+ * - 如果勾選「檢查格式」且信息類型為充值地址或 TXID，則進行格式驗證
+ * - 驗證通過後呼叫 addRow() 將資料新增至表格
  */
 function handleSingleInput() {
 	var caseNumber = document.getElementById("caseNumber").value;
 	var infoType = document.getElementById("infoType").value;
 	var infoDetail = document.getElementById("infoDetail").value.trim();
 	var checkFormat = document.getElementById("checkFormat").checked;
+	// 取得 "手機號碼自動加上國碼" 勾選狀態
+	var autoPhoneFormat = document.getElementById("autoPhoneFormat") ? document.getElementById("autoPhoneFormat").checked : false;
 	
 	if (!infoDetail) {
 		alert("信息内容不能为空");
 		return;
 	}
 	
+	// 若信息類型為「手机号码」且勾選自動加國碼，則格式化號碼
+	if (infoType === "手机号码" && autoPhoneFormat) {
+		infoDetail = formatPhoneNumberAuto(infoDetail);
+	}
+	
+	// 若勾選檢查格式且信息類型為充值地址或 TXID，則進行驗證
 	if (checkFormat && (infoType === "充值地址" || infoType === "TXID")) {
 		if (!isValidInfo(infoType, infoDetail)) {
 			alert("无效的" + infoType + ": " + infoDetail);
@@ -30,11 +85,12 @@ function handleSingleInput() {
 
 /**
  * 處理批量輸入：
- * 1. 按行分割輸入
- * 2. 針對每行呼叫 detectInfoType() 判斷類型，若有效則新增
+ * - 以換行分割輸入的內容，逐行處理
+ * - 若信息類型為「手机号码」且勾選自動加國碼，則格式化每行號碼
  */
 function handleBulkInput() {
 	var bulkText = document.getElementById("bulkInput").value;
+	var autoPhoneFormat = document.getElementById("autoPhoneFormat") ? document.getElementById("autoPhoneFormat").checked : false;
 	if (!bulkText) {
 		alert("批量信息不能为空");
 		return;
@@ -44,6 +100,10 @@ function handleBulkInput() {
 	lines.forEach(function(line) {
 		var detail = line.trim();
 		if (!detail) return;
+		// 若輸入信息類型為「手机号码」且選擇自動格式化，則格式化每行號碼
+		if (document.getElementById("infoType").value === "手机号码" && autoPhoneFormat) {
+			detail = formatPhoneNumberAuto(detail);
+		}
 		var infoType = detectInfoType(detail);
 		if (infoType) {
 			addRow(infoType, detail);
