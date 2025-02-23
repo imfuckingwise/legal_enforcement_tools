@@ -4,11 +4,11 @@
 // BTC 地址與 TxID 驗證
 // ====================
 function isValidBTCAddress(address) {
-	const legacyPattern		= /^[1][a-km-zA-HJ-NP-Z1-9]{24,33}$/;			// Legacy (P2PKH)：以 1 開頭，總長度 25～34
+	const legacyPattern			= /^[1][a-km-zA-HJ-NP-Z1-9]{24,33}$/;			// Legacy (P2PKH)：以 1 開頭，總長度 25～34
 	const nestedSegwitPattern	= /^[3][a-km-zA-HJ-NP-Z1-9]{24,33}$/;			// Nested Segwit (P2SH-P2WPKH)：以 3 開頭，總長度 25～34
 	const nativeSegwitPattern	= /^bc1q[a-z0-9]{8,87}$/;						// Native Segwit (P2WPKH)：以 bc1q 開頭（簡化檢查）
 	const taprootPattern		= /^bc1p[a-z0-9]{8,87}$/;						// Taproot (P2TR)：以 bc1p 開頭（簡化檢查）
-	const lowerAddress		= address.toLowerCase();
+	const lowerAddress			= address.toLowerCase();
 	return (
 		legacyPattern.test(address) ||
 		nestedSegwitPattern.test(address) ||
