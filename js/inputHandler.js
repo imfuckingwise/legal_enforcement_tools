@@ -152,14 +152,46 @@ function updateDataCount() {
  * 若符合 地址格式，視為 "充值地址"；
  * 若符合 TXID 格式，視為 "TXID"。
  */
+/**
+ * 根據輸入內容判斷信息類型：
+ * 先檢查是否符合 TXID 格式，若符合則回傳 "TXID"；
+ * 否則再檢查是否符合地址格式，若符合則回傳 "充值地址"；
+ * 若都不符合，則回傳 null。
+ */
 function detectInfoType(infoDetail) {
-	if (isValidBTCAddress(infoDetail) || isValidEVMAddress(infoDetail) || isValidLTCAddress(infoDetail) || isValidTRONAddress(infoDetail) ||  isValidSOLAddress(infoDetail) || isValidXMRAddress(infoDetail) || isValidKaspaAddress(infoDetail) || isValidSuiAddress(infoDetail) || isValidAptosAddress(infoDetail) || isValidADAAddress(infoDetail) )
-		return "充值地址";
-	
-	if (isValidBTCTxID(infoDetail) || isValidEVMTxID(infoDetail) || isValidLTCTxID(infoDetail) || isValidTRONTxID(infoDetail) || isValidSOLTxID(infoDetail) || isValidXMRTxID(infoDetail) || isValidKaspaTxID(infoDetail) || isValidSuiTxID(infoDetail) || isValidAptosTxID(infoDetail) || isValidADATxID(infoDetail))
+	// 先檢查 TXID 格式
+	if (
+		isValidBTCTxID(infoDetail) ||
+		isValidEVMTxID(infoDetail) ||
+		isValidLTCTXID(infoDetail) ||
+		isValidTRONTxID(infoDetail) ||
+		isValidSOLTxID(infoDetail) ||
+		isValidXMRTXID(infoDetail) ||
+		isValidKaspaTxID(infoDetail) ||
+		isValidSuiTxID(infoDetail) ||
+		isValidAptosTxID(infoDetail) ||
+		isValidADATxID(infoDetail)
+	) {
 		return "TXID";
+	}
+	// 再檢查地址格式
+	if (
+		isValidBTCAddress(infoDetail) ||
+		isValidEVMAddress(infoDetail) ||
+		isValidLTCAddress(infoDetail) ||
+		isValidTRONAddress(infoDetail) ||
+		isValidSOLAddress(infoDetail) ||
+		isValidXMRAddress(infoDetail) ||
+		isValidKaspaAddress(infoDetail) ||
+		isValidSuiAddress(infoDetail) ||
+		isValidAptosAddress(infoDetail) ||
+		isValidADAAddress(infoDetail)
+	) {
+		return "充值地址";
+	}
 	return null;
 }
+
 
 /**
  * 複製所有已輸入資料到剪貼簿（依行以換行分隔）
