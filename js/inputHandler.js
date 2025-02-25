@@ -163,10 +163,10 @@ function detectInfoType(infoDetail) {
 	if (
 		isValidBTCTxID(infoDetail) ||
 		isValidEVMTxID(infoDetail) ||
-		isValidLTCTXID(infoDetail) ||
+		isValidLTCTxID(infoDetail) ||
 		isValidTRONTxID(infoDetail) ||
 		isValidSOLTxID(infoDetail) ||
-		isValidXMRTXID(infoDetail) ||
+		isValidXMRTxID(infoDetail) ||
 		isValidKaspaTxID(infoDetail) ||
 		isValidSuiTxID(infoDetail) ||
 		isValidAptosTxID(infoDetail) ||
