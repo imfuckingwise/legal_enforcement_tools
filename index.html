@@ -16,7 +16,7 @@
 	<!-- 導航列 -->
 	<nav class="navbar navbar-expand-lg navbar-light bg-light">
 		<div class="container-fluid">
-			<a class="navbar-brand" href="#">司法協助工具 (v1.4.6)</a>
+			<a class="navbar-brand" href="#">司法協助工具 (v1.5)</a>
 			<button 
 				class="navbar-toggler" 
 				type="button" data-bs-toggle="collapse" 
@@ -270,6 +270,11 @@
 			<button class="btn btn-info btn-sm" onclick="generateAndCopyTopNReport()">複製前 N 名案件數量</button>
 		</div>
 		
+		<!-- 生成並匯出PDF檔案 -->
+		<button class="btn btn-outline-primary mt-3" onclick="exportPDFReport()">
+			匯出 PDF 報告
+		</button>
+
 
 		<!-- 顯示分析結果 -->
 		<table class="table table-bordered w-75 mt-4">
@@ -289,6 +294,11 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="https://unpkg.com/libphonenumber-js@1.9.43/bundle/libphonenumber-max.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+	<!-- 引入 font.js，確保在其他自訂 JS 前 -->
+	<script src="js/font.js"></script>
 
 	<!-- 引入 debug.js，確保在其他自訂 JS 前 -->
 	<script src="js/debug.js"></script>
