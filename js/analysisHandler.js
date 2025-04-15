@@ -319,7 +319,7 @@ function exportPDFReport() {
 		const triggerPercentage = parseFloat(document.getElementById('triggerPercentage').value) || 50;
 
 		// 3) 標題
-		doc.text("司法協助週報", 105, 15, { align: "center" });
+		doc.text("司法協助報告", 105, 15, { align: "center" });
 
 		// 4) 在標題下方再寫 A/B 區段資訊
 		doc.setFontSize(12);
