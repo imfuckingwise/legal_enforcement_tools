@@ -430,9 +430,8 @@ function exportPDFReport() {
 
 
 function makePDFFileNameByRange(startDate, endDate) {
-	if (!startDate || !endDate) return "analysis_report.pdf";
+	if (!startDate || !endDate) return "error.pdf";
 	const s = startDate.replace(/-/g, "");
 	const e = endDate.replace(/-/g, "");
-	// 只取後四碼 => e.substring(4)
-	return `${s}_${e.substring(4)}_report.pdf`; 
+	return `${s}_${e}_report.pdf`; 
 }
