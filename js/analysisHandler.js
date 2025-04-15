@@ -335,7 +335,7 @@ function exportPDFReport() {
 		// 6) 先做「案件數排行前 X 名」(依照 B 區段案件數)
 		//    表格標題
 		doc.setFontSize(14);
-		doc.text(`案件數排行前 ${topN} 名`, 105, yPos, { align: "center" });
+		doc.text(`B 區段案件數排行前 ${topN} 名`, 105, yPos, { align: "center" });
 		yPos += 6;
 
 		// 7) 用 autoTable 畫「前 X 名」表格
