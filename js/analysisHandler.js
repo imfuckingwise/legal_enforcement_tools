@@ -6,88 +6,132 @@ let excelData = [];
 function handleFileUploadB(event) {
 	const file = event.target.files[0];
 
-	// 檢查檔案名稱是否包含 "客服-执法请求跟进"
-	if (!file.name.includes('客服-执法请求跟进')) {
-		alert('上傳失敗：檔案名稱必須包含 "客服-执法请求跟进"');
+	if (!file) {
+		debugError("handleFileUploadB => 未選擇任何檔案");
 		return;
 	}
 
-	if (file) {
-		const reader = new FileReader();
-		reader.onload = function(e) {
+	if (!file.name.includes('客服-执法请求跟进')) {
+		alert('上傳失敗：檔案名稱必須包含 "客服-执法请求跟进"');
+		debugLog("handleFileUploadB => 檔案名稱不符合:", file.name);
+		return;
+	}
+
+	const reader = new FileReader();
+	reader.onload = function(e) {
+		try {
 			const data = new Uint8Array(e.target.result);
 			const workbook = XLSX.read(data, { type: 'array' });
-			let sheet = workbook.Sheets[workbook.SheetNames[0]];
+			const sheet = workbook.Sheets[workbook.SheetNames[0]];
 			excelData = XLSX.utils.sheet_to_json(sheet);
-		};
-		reader.readAsArrayBuffer(file);
-	}
+
+			debugLog("handleFileUploadB => 解析成功, 筆數:", excelData.length);
+		} catch (ex) {
+			debugError("handleFileUploadB => 解析檔案失敗:", ex);
+		}
+	};
+	reader.readAsArrayBuffer(file);
 }
 
 // 開始分析
 function startAnalysis() {
-	const startDateA = document.getElementById('startDateA').value;
-	const endDateA = document.getElementById('endDateA').value;
-	const startDateB = document.getElementById('startDateB').value;
-	const endDateB = document.getElementById('endDateB').value;
-	const triggerPercentage = parseFloat(document.getElementById('triggerPercentage').value);
+	try {
+		const startDateA = document.getElementById('startDateA').value;
+		const endDateA   = document.getElementById('endDateA').value;
+		const startDateB = document.getElementById('startDateB').value;
+		const endDateB   = document.getElementById('endDateB').value;
+		const triggerPercentage = parseFloat(document.getElementById('triggerPercentage').value);
 
-	if (!startDateA || !endDateA || !startDateB || !endDateB) {
-		alert("請選擇兩個時間區段");
-		return;
+		if (!startDateA || !endDateA || !startDateB || !endDateB) {
+			throw new Error("請選擇 A/B 區段的開始與結束日期");
+		}
+		if (isNaN(triggerPercentage)) {
+			throw new Error("觸發百分比必須為數字");
+		}
+
+		debugLog("startAnalysis => A區段:", startDateA, "~", endDateA,
+			"B區段:", startDateB, "~", endDateB, 
+			"觸發百分比:", triggerPercentage
+		);
+
+		const filteredDataA = filterDataByDate(startDateA, endDateA);
+		const filteredDataB = filterDataByDate(startDateB, endDateB);
+
+		const countryCountA = countCountries(filteredDataA);
+		const countryCountB = countCountries(filteredDataB);
+
+		displayAnalysisResults(countryCountA, countryCountB, triggerPercentage);
+	} catch (ex) {
+		debugError("startAnalysis => 發生錯誤:", ex);
+		alert(ex.message);
 	}
-
-	const filteredDataA = filterDataByDate(startDateA, endDateA);
-	const filteredDataB = filterDataByDate(startDateB, endDateB);
-
-	const countryCountA = countCountries(filteredDataA);
-	const countryCountB = countCountries(filteredDataB);
-
-	displayAnalysisResults(countryCountA, countryCountB, triggerPercentage);
 }
 
 // 根據「申请编号」中的日期過濾
 function filterDataByDate(startDate, endDate) {
-	const start = new Date(startDate);
-	const end = new Date(endDate);
+	try {
+		const start = new Date(startDate);
+		const end = new Date(endDate);
 
-	return excelData.filter(row => {
-		const caseNumber = row['申请编号'];
-		if (caseNumber && caseNumber.length >= 8) {
+		debugLog("filterDataByDate => 開始篩選:", { start, end });
+
+		return excelData.filter((row, idx) => {
+			const caseNumber = row['申请编号'];
+			if (!caseNumber || caseNumber.length < 8) {
+				debugLog(`Row #${idx} => 申请编号無效:`, caseNumber);
+				return false;
+			}
+
 			const year = caseNumber.substring(0, 4);
 			const month = caseNumber.substring(4, 6);
 			const day = caseNumber.substring(6, 8);
-			const date = new Date(`${year}-${month}-${day}`);
+			const dateStr = `${year}-${month}-${day}`;
+			const date = new Date(dateStr);
 
-			if (!isNaN(date)) {
-				return date >= start && date <= end;
+			if (isNaN(date)) {
+				debugLog(`Row #${idx} => 日期解析失敗:`, dateStr);
+				return false;
 			}
-		}
-		return false;
-	});
+
+			const inRange = (date >= start && date <= end);
+			debugLog(`Row #${idx} => 申请编号=${caseNumber}, 日期=${dateStr}, inRange=${inRange}`);
+			return inRange;
+		});
+	} catch (ex) {
+		debugError("filterDataByDate => 發生錯誤:", ex);
+		return [];
+	}
 }
 
 // 計算各國家
 function countCountries(data) {
-	let countryCounter = {};
+	try {
+		let countryCounter = {};
 
-	data.forEach(row => {
-		let country;
-		if (row['是否中国大陆司法机构'] === '中国大陆') {
-			country = '中国大陆';
-		} else if (
-			row['是否中国大陆司法机构'] === '否' &&
-			row['司法机构-所在国家']
-		) {
-			country = row['司法机构-所在国家'].trim().toLowerCase();
-		}
+		data.forEach((row, idx) => {
+			const isCN = row['是否中国大陆司法机构'];
+			const nat = row['司法机构-所在国家'];
+			let country;
 
-		if (country) {
-			countryCounter[country] = (countryCounter[country] || 0) + 1;
-		}
-	});
+			if (isCN === '中国大陆') {
+				country = '中国大陆';
+			} else if (isCN === '否' && nat) {
+				country = nat.trim().toLowerCase();
+			}
 
-	return countryCounter;
+			if (country) {
+				countryCounter[country] = (countryCounter[country] || 0) + 1;
+			} else {
+				debugLog(`Row #${idx} => 國家資訊不足, isCN=${isCN}, nat=${nat}`);
+			}
+		});
+
+		debugLog("countCountries => 分析結果:", countryCounter);
+		return countryCounter;
+	} catch (ex) {
+		debugError("countCountries => 發生錯誤:", ex);
+		return {};
+	}
 }
 
 // 顯示分析結果
@@ -96,7 +140,6 @@ function displayAnalysisResults(countA, countB, triggerPercentage) {
 	resultsBody.innerHTML = '';
 
 	const countries = new Set([...Object.keys(countA), ...Object.keys(countB)]);
-
 	countries.forEach(country => {
 		const countAValue = countA[country] || 0;
 		const countBValue = countB[country] || 0;
@@ -109,20 +152,16 @@ function displayAnalysisResults(countA, countB, triggerPercentage) {
 		}
 
 		const row = document.createElement('tr');
-
 		const countryCell = document.createElement('td');
-		countryCell.textContent = country;
-
 		const countACell = document.createElement('td');
-		countACell.textContent = countAValue;
-
 		const countBCell = document.createElement('td');
-		countBCell.textContent = countBValue;
-
 		const growthCell = document.createElement('td');
+
+		countryCell.textContent = country;
+		countACell.textContent = countAValue;
+		countBCell.textContent = countBValue;
 		growthCell.textContent = growthPercentage.toFixed(2) + '%';
 
-		// 若超過觸發百分比，底色標紅
 		if (growthPercentage >= triggerPercentage) {
 			row.style.backgroundColor = 'red';
 		}
@@ -133,6 +172,7 @@ function displayAnalysisResults(countA, countB, triggerPercentage) {
 		row.appendChild(growthCell);
 		resultsBody.appendChild(row);
 	});
+	debugLog("displayAnalysisResults => 完成呈現");
 }
 
 // 生成並複製「超過增長百分比」的報告
