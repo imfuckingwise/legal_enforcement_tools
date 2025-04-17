@@ -366,6 +366,16 @@
 			if(confirm('確定要刪除全部資料嗎？此操作無法復原！')) deleteAllData();
 		};
 	}
+	// Ctrl+S 快捷鍵保存文件（僅在調證信息錄入區域）
+	window.addEventListener('keydown', function(e) {
+		if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+			const inputSection = document.getElementById('inputSection');
+			if (inputSection && !inputSection.classList.contains('d-none')) {
+				e.preventDefault();
+				saveFile();
+			}
+		}
+	});
 	</script>
 </body>
 </html>
