@@ -201,11 +201,11 @@
     </div>
 
 	<!-- 案件數據分析-->
-	<div class="ccontainer d-none mt-4" id="analysisSection">
+	<div class="container d-flex flex-column align-items-center d-none mt-4" id="analysisSection">
 		<h1 class="text-center">案件數據分析</h1>
 
 		<!-- 新增上傳 XLSX 文件的部分 -->
-		<div class="mb-3 w-75">
+		<div class="mb-3 w-100 w-md-75">
 			<label for="fileInputB" class="form-label">上傳 XLSX 文件：</label>
 			<input 
 				type="file" 
@@ -217,7 +217,7 @@
 		</div>
 
 		<!-- 選擇時間區段和百分比 -->
-		<div class="row w-75">
+		<div class="row w-100 w-md-75">
 			<div class="col-md-6">
 				<label for="startDateA">A 區段開始日期：</label>
 				<input type="date" id="startDateA" class="form-control">
@@ -228,7 +228,7 @@
 			</div>
 		</div>
 
-		<div class="row w-75 mt-3">
+		<div class="row w-100 w-md-75 mt-3">
 			<div class="col-md-6">
 				<label for="startDateB">B 區段開始日期：</label>
 				<input type="date" id="startDateB" class="form-control">
@@ -239,7 +239,7 @@
 			</div>
 		</div>
 
-		<div class="row w-75 mt-3">
+		<div class="row w-100 w-md-75 mt-3">
 			<div class="col-md-6">
 				<label for="triggerPercentage">異常數據增長觸發百分比：</label>
 				<input 
@@ -254,30 +254,27 @@
 			</div>
 		</div>
 
-		<!-- 開始分析 -->
-		<button class="btn btn-info mt-3" onclick="startAnalysis()"><i class="fa-solid fa-chart-line me-1"></i>開始分析</button>
+		<!-- 開始分析與主要操作按鈕 -->
+		<div class="d-flex flex-wrap justify-content-center gap-2 my-3">
+			<button class="btn btn-info" onclick="startAnalysis()"><i class="fa-solid fa-chart-line me-1"></i>開始分析</button>
+			<button class="btn btn-warning" onclick="generateAndCopyExceedingReport()"><i class="fa-solid fa-arrow-up-right-dots me-1"></i>複製異常增長統計結果</button>
+			<button class="btn btn-outline-primary" onclick="exportPDFReport()"><i class="fa-solid fa-file-pdf me-1"></i>匯出 PDF 報告</button>
+		</div>
 
+		<!-- 生成並複製本週案件數量前五名 -->
+		<div class="d-flex flex-wrap align-items-center justify-content-center gap-2 mb-3">
+			<label for="topNInput" class="form-label mb-0">前</label>
+			<input type="number" id="topNInput" class="form-control form-control-sm" value="5" min="1" style="width: 80px;">
+			<span>名</span>
+			<button class="btn btn-info btn-sm" onclick="generateAndCopyTopNReport()"><i class="fa-solid fa-ranking-star me-1"></i>複製前 N 名案件數量</button>
+		</div>
+		
 		<!-- 隱藏的統計結果區域 -->
 		<textarea id="exceedingReportContent" style="display:none;"></textarea>
 		<textarea id="topFiveReportContent" style="display:none;"></textarea>
 
-		<!-- 生成統計報告按鈕 -->
-		<button class="btn btn-warning mt-3" onclick="generateAndCopyExceedingReport()"><i class="fa-solid fa-arrow-up-right-dots me-1"></i>複製異常增長統計結果</button>
-
-		<!-- 生成並複製本週案件數量前五名 -->
-		<div class="d-flex align-items-center mb-3">
-			<label for="topNInput" class="form-label me-2 mb-0">前</label>
-			<input type="number" id="topNInput" class="form-control form-control-sm me-2" value="5" min="1" style="width: 80px;">
-			<span class="me-2">名</span>
-			<button class="btn btn-info btn-sm" onclick="generateAndCopyTopNReport()"><i class="fa-solid fa-ranking-star me-1"></i>複製前 N 名案件數量</button>
-		</div>
-		
-		<!-- 生成並匯出PDF檔案 -->
-		<button class="btn btn-outline-primary mt-3" onclick="exportPDFReport()"><i class="fa-solid fa-file-pdf me-1"></i>匯出 PDF 報告</button>
-
-
 		<!-- 顯示分析結果 -->
-		<table class="table table-bordered w-75 mt-4">
+		<table class="table table-bordered w-100 w-md-75 mt-4">
 			<thead>
 				<tr>
 					<th>国家</th>
