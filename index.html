@@ -10,13 +10,16 @@
 		rel="stylesheet"
 	>
 	<link href="style.css" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
 	<!-- 導航列 -->
-	<nav class="navbar navbar-expand-lg navbar-light bg-light">
+	<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm" id="mainNavbar">
 		<div class="container-fluid">
-			<a class="navbar-brand" href="#">司法協助工具 (v1.5)</a>
+			<a class="navbar-brand d-flex align-items-center" href="#">
+				<i class="fa-solid fa-scale-balanced fa-lg me-2 text-primary"></i>司法協助工具 (v1.5.1)
+			</a>
 			<button 
 				class="navbar-toggler" 
 				type="button" data-bs-toggle="collapse" 
@@ -30,21 +33,28 @@
 			<div class="collapse navbar-collapse" id="navbarNav">
 				<ul class="navbar-nav me-auto mb-2 mb-lg-0">
 					<li class="nav-item">
-						<a class="nav-link" href="#" onclick="showSection('inputSection')">調證信息錄入</a>
+						<a class="nav-link d-flex align-items-center" href="#" onclick="showSection('inputSection')">
+							<i class="fa-solid fa-pen-to-square me-1"></i>調證信息錄入
+						</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" href="#" onclick="showSection('outputSection')">調證結果輸出</a>
+						<a class="nav-link d-flex align-items-center" href="#" onclick="showSection('outputSection')">
+							<i class="fa-solid fa-file-lines me-1"></i>調證結果輸出
+						</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" href="#" onclick="showSection('analysisSection')">案件數據分析</a>
+						<a class="nav-link d-flex align-items-center" href="#" onclick="showSection('analysisSection')">
+							<i class="fa-solid fa-chart-simple me-1"></i>案件數據分析
+						</a>
 					</li>
 				</ul>
 				<button 
 					class="btn btn-dark" 
 					id="toggleDarkMode" 
 					onclick="toggleDarkMode()"
+					data-bs-toggle="tooltip" data-bs-placement="bottom" title="切換深色模式"
 				>
-					切換深色模式
+					<i class="fa-solid fa-moon"></i>
 				</button>
 			</div>
 		</div>
@@ -103,22 +113,22 @@
 		</div>
 		
 
-		<button class="btn btn-primary mb-3" onclick="handleSingleInput()">添加信息</button>
+		<button class="btn btn-primary mb-3" onclick="handleSingleInput()"><i class="fa-solid fa-plus me-1"></i>添加信息</button>
 
 		<!-- 批量新增輸入區塊 -->
 		<div class="mb-3">
 			<label for="bulkInput" class="form-label">批量新增 (僅支持地址與TXID)：</label>
 			<textarea id="bulkInput" class="form-control" rows="5" placeholder="每行一条信息"></textarea>
-			<button class="btn btn-secondary mt-2" onclick="handleBulkInput()">批量新增</button>
+			<button class="btn btn-secondary mt-2" onclick="handleBulkInput()"><i class="fa-solid fa-layer-group me-1"></i>批量新增</button>
 		</div>
 
-		<button class="btn btn-success mb-3" onclick="saveFile()">保存文件</button>
-		<button class="btn btn-warning mb-3" onclick="importFile()">導入文件</button>
+		<button class="btn btn-success mb-3" onclick="saveFile()"><i class="fa-solid fa-floppy-disk me-1"></i>保存文件</button>
+		<button class="btn btn-warning mb-3" onclick="importFile()"><i class="fa-solid fa-file-import me-1"></i>導入文件</button>
 
 		<!-- 複製與刪除全部資料的按鈕 -->
 		<div class="mb-3">
-			<button class="btn btn-info" onclick="copyAllData()">複製全部資料</button>
-			<button class="btn btn-danger" onclick="deleteAllData()">刪除全部資料</button>
+			<button class="btn btn-info" onclick="copyAllData()"><i class="fa-solid fa-copy me-1"></i>複製全部資料</button>
+			<button class="btn btn-danger" onclick="deleteAllData()"><i class="fa-solid fa-trash me-1"></i>刪除全部資料</button>
 		</div>
 
 		<h3>已錄入的信息</h3>
@@ -157,18 +167,12 @@
         <ul id="uploadedFileList"></ul>
     
         <!-- 按鈕：只有在按下「分析」後，才會將所有檔案解析並顯示 -->
-        <button class="btn btn-primary mb-3" onclick="analyzeFiles()">
-            分析
-        </button>
+        <button class="btn btn-primary mb-3" onclick="analyzeFiles()"><i class="fa-solid fa-magnifying-glass-chart me-1"></i>分析</button>
 
         <!-- 兩個按鈕：複製UID 與 複製TXID/充值地址 -->
-        <button class="btn btn-info mb-3" onclick="copyAllUniqueUIDs()">
-            複製所有 UID (排除重複)
-        </button>
+        <button class="btn btn-info mb-3" onclick="copyAllUniqueUIDs()"><i class="fa-solid fa-id-badge me-1"></i>複製所有 UID (排除重複)</button>
 
-        <button class="btn btn-info mb-3" onclick="copyAllTxidAndAddress()">
-            複製所有 TXID 與 充值地址
-        </button>
+        <button class="btn btn-info mb-3" onclick="copyAllTxidAndAddress()"><i class="fa-solid fa-coins me-1"></i>複製所有 TXID 與 充值地址</button>
     
         <!-- 分析結果表格 (UID / Type / Information) -->
         <h3>分析結果</h3>
@@ -251,29 +255,25 @@
 		</div>
 
 		<!-- 開始分析 -->
-		<button class="btn btn-info mt-3" onclick="startAnalysis()">開始分析</button>
+		<button class="btn btn-info mt-3" onclick="startAnalysis()"><i class="fa-solid fa-chart-line me-1"></i>開始分析</button>
 
 		<!-- 隱藏的統計結果區域 -->
 		<textarea id="exceedingReportContent" style="display:none;"></textarea>
 		<textarea id="topFiveReportContent" style="display:none;"></textarea>
 
 		<!-- 生成統計報告按鈕 -->
-		<button class="btn btn-warning mt-3" onclick="generateAndCopyExceedingReport()">
-			複製異常增長統計結果
-		</button>
+		<button class="btn btn-warning mt-3" onclick="generateAndCopyExceedingReport()"><i class="fa-solid fa-arrow-up-right-dots me-1"></i>複製異常增長統計結果</button>
 
 		<!-- 生成並複製本週案件數量前五名 -->
 		<div class="d-flex align-items-center mb-3">
 			<label for="topNInput" class="form-label me-2 mb-0">前</label>
 			<input type="number" id="topNInput" class="form-control form-control-sm me-2" value="5" min="1" style="width: 80px;">
 			<span class="me-2">名</span>
-			<button class="btn btn-info btn-sm" onclick="generateAndCopyTopNReport()">複製前 N 名案件數量</button>
+			<button class="btn btn-info btn-sm" onclick="generateAndCopyTopNReport()"><i class="fa-solid fa-ranking-star me-1"></i>複製前 N 名案件數量</button>
 		</div>
 		
 		<!-- 生成並匯出PDF檔案 -->
-		<button class="btn btn-outline-primary mt-3" onclick="exportPDFReport()">
-			匯出 PDF 報告
-		</button>
+		<button class="btn btn-outline-primary mt-3" onclick="exportPDFReport()"><i class="fa-solid fa-file-pdf me-1"></i>匯出 PDF 報告</button>
 
 
 		<!-- 顯示分析結果 -->
@@ -310,5 +310,65 @@
 	<script src="js/fileOps.js"></script>
 	<script src="js/outputHandler.js"></script>
 	<script src="js/analysisHandler.js"></script>
+	<script>
+	// 頁面載入動畫
+	window.addEventListener('DOMContentLoaded', function() {
+		setTimeout(function() {
+			document.getElementById('pageLoader').style.display = 'none';
+		}, 600);
+	});
+	// 導覽列滾動陰影
+	window.addEventListener('scroll', function() {
+		const nav = document.getElementById('mainNavbar');
+		if(window.scrollY > 10) nav.classList.add('shadow');
+		else nav.classList.remove('shadow');
+	});
+	// 手機版選單項目更大
+	const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+	navLinks.forEach(link => {
+		link.classList.add('py-2','fs-5');
+	});
+	// 表單自動聚焦
+	window.addEventListener('DOMContentLoaded', function() {
+		const caseInput = document.getElementById('caseNumber');
+		if(caseInput) caseInput.focus();
+	});
+	// Enter送出（單筆輸入）
+	document.getElementById('infoDetail').addEventListener('keydown', function(e) {
+		if(e.key === 'Enter') {
+			e.preventDefault();
+			handleSingleInput();
+		}
+	});
+	// 即時錯誤提示（簡單示例）
+	document.getElementById('caseNumber').addEventListener('input', function(e) {
+		if(e.target.value.trim() === '') {
+			e.target.classList.add('is-invalid');
+			if(!document.getElementById('caseNumberError')) {
+				const err = document.createElement('div');
+				err.id = 'caseNumberError';
+				err.className = 'invalid-feedback';
+				err.innerText = '案號不得為空';
+				e.target.parentNode.appendChild(err);
+			}
+		} else {
+			e.target.classList.remove('is-invalid');
+			const err = document.getElementById('caseNumberError');
+			if(err) err.remove();
+		}
+	});
+	// 按鈕 tooltip 啟用
+	const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+	tooltipTriggerList.map(function (tooltipTriggerEl) {
+		return new bootstrap.Tooltip(tooltipTriggerEl);
+	});
+	// 刪除全部資料加二次確認
+	const delBtn = document.querySelector('button.btn-danger[onclick="deleteAllData()"]');
+	if(delBtn) {
+		delBtn.onclick = function() {
+			if(confirm('確定要刪除全部資料嗎？此操作無法復原！')) deleteAllData();
+		};
+	}
+	</script>
 </body>
 </html>
