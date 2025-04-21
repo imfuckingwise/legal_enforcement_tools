@@ -109,7 +109,7 @@ function countCountries(data) {
 		let countryCounter = {};
 
 		data.forEach((row, idx) => {
-			const isCN = row['是否中国大陆司法机构'];
+			const isCN = row['司法机构-是否属于中国大陆'];
 			const nat = row['司法机构-所在国家'];
 			let country;
 
