@@ -226,11 +226,30 @@ function deleteAllData() {
 }
 
 // 監聽信息類型選擇，控制電話區碼輸入欄位的顯示
-document.getElementById("infoType").addEventListener("change", function() {
-	var phonePrefixContainer = document.getElementById("phonePrefixContainer");
-	if (this.value === "手机号码") {
+document.addEventListener('DOMContentLoaded', function() {
+	console.log('DOM Content Loaded');
+	const infoTypeSelect = document.getElementById("infoType");
+	const phonePrefixContainer = document.getElementById("phonePrefixContainer");
+	
+	if (!infoTypeSelect || !phonePrefixContainer) {
+		console.error('Required elements not found:', {
+			infoTypeSelect: !!infoTypeSelect,
+			phonePrefixContainer: !!phonePrefixContainer
+		});
+		return;
+	}
+
+	infoTypeSelect.addEventListener("change", function() {
+		console.log('Info type changed to:', this.value);
+		if (this.value === "手机号码") {
+			phonePrefixContainer.style.display = "block";
+		} else {
+			phonePrefixContainer.style.display = "none";
+		}
+	});
+
+	// 初始化顯示狀態
+	if (infoTypeSelect.value === "手机号码") {
 		phonePrefixContainer.style.display = "block";
-	} else {
-		phonePrefixContainer.style.display = "none";
 	}
 });
