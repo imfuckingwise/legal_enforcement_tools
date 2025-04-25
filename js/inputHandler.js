@@ -55,17 +55,18 @@ function handleSingleInput() {
 	var caseNumber = document.getElementById("caseNumber").value;
 	var infoType = document.getElementById("infoType").value;
 	var infoDetail = document.getElementById("infoDetail").value.trim();
-	// 取得 "手機號碼自動加上國碼" 勾選狀態
-	var autoPhoneFormat = document.getElementById("autoPhoneFormat") ? document.getElementById("autoPhoneFormat").checked : false;
 	
 	if (!infoDetail) {
 		alert("信息内容不能为空");
 		return;
 	}
 	
-	// 若信息類型為「手机号码」且勾選自動加國碼，則格式化號碼
-	if (infoType === "手机号码" && autoPhoneFormat) {
-		infoDetail = formatPhoneNumberAuto(infoDetail);
+	// 若信息類型為「手机号码」，則加上電話區碼
+	if (infoType === "手机号码") {
+		var prefix = document.getElementById("phonePrefix").value.trim();
+		if (prefix) {
+			infoDetail = prefix + "-" + infoDetail;
+		}
 	}
 	
 	addRow(infoType, infoDetail);
@@ -108,8 +109,6 @@ function handleBulkInput() {
 	// 清空批量輸入框!
 	document.getElementById("bulkInput").value = "";
 }
-
-
 
 /**
  * 新增一列資料到調證信息表格
@@ -192,7 +191,6 @@ function detectInfoType(infoDetail) {
 	return null;
 }
 
-
 /**
  * 複製所有已輸入資料到剪貼簿（依行以換行分隔）
  */
@@ -226,3 +224,13 @@ function deleteAllData() {
 	tbody.innerHTML = "";
 	updateDataCount();
 }
+
+// 監聽信息類型選擇，控制電話區碼輸入欄位的顯示
+document.getElementById("infoType").addEventListener("change", function() {
+	var phonePrefixContainer = document.getElementById("phonePrefixContainer");
+	if (this.value === "手机号码") {
+		phonePrefixContainer.style.display = "block";
+	} else {
+		phonePrefixContainer.style.display = "none";
+	}
+});
