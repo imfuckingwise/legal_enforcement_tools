@@ -77,8 +77,8 @@ function isValidSOLAddress(address) {
 }
 
 function isValidSOLTxID(txid) {
-	// 假設 Solana TxID 為 88 個字元（由大小寫字母及數字組成）
-	return /^[A-Za-z0-9]{88}$/.test(txid);
+	// 假設 Solana TxID 為 87-88 個字元（由大小寫字母及數字組成）
+	return /^[A-Za-z0-9]{87,88}$/.test(txid);
 }
 // ====================
 // XMR 地址與 TxID 驗證
