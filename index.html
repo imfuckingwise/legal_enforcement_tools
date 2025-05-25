@@ -18,7 +18,7 @@
 	<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm" id="mainNavbar">
 		<div class="container-fluid">
 			<a class="navbar-brand d-flex align-items-center" href="#">
-				<i class="fa-solid fa-scale-balanced fa-lg me-2 text-primary"></i>司法協助工具 (v1.5.2)
+				<i class="fa-solid fa-scale-balanced fa-lg me-2 text-primary"></i>司法協助工具 (v1.5.3)
 			</a>
 			<button 
 				class="navbar-toggler" 
@@ -314,12 +314,7 @@
 	<script src="js/outputHandler.js"></script>
 	<script src="js/analysisHandler.js"></script>
 	<script>
-	// 頁面載入動畫
-	window.addEventListener('DOMContentLoaded', function() {
-		setTimeout(function() {
-			document.getElementById('pageLoader').style.display = 'none';
-		}, 600);
-	});
+		
 	// 導覽列滾動陰影
 	window.addEventListener('scroll', function() {
 		const nav = document.getElementById('mainNavbar');
@@ -382,6 +377,8 @@
 			}
 		}
 	});
+
+	window.startAnalysis = startAnalysis;
 	</script>
 </body>
 </html>
