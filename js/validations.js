@@ -174,7 +174,7 @@ function isValidInfo(infoType, infoDetail) {
 				isValidLTCTxID(infoDetail) ||
 				isValidTRONTxID(infoDetail) ||
 				isValidSOLTxID(infoDetail) ||
-				isValidXMRTXID(infoDetail) ||
+                                isValidXMRTxID(infoDetail) ||
 				isValidKaspaTxID(infoDetail) ||
 				isValidSuiTxID(infoDetail) ||
 				isValidAptosTxID(infoDetail) ||
