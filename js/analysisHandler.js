@@ -25,9 +25,25 @@ function handleFileUploadB(event) {
 			const sheet = workbook.Sheets[workbook.SheetNames[0]];
 			excelData = XLSX.utils.sheet_to_json(sheet);
 
+			// 檢查必要的列是否存在
+			if (excelData.length > 0) {
+				const firstRow = excelData[0];
+				const requiredColumns = ['申请编号', '申請編號'];
+				const hasCaseNumber = requiredColumns.some(col => firstRow.hasOwnProperty(col));
+				
+				if (!hasCaseNumber) {
+					debugLog("handleFileUploadB => 警告：未找到「申请编号」列，可用列名:", Object.keys(firstRow));
+					alert('警告：未找到「申请编号」列，請檢查 Excel 文件格式');
+				}
+			}
+
 			debugLog("handleFileUploadB => 解析成功, 筆數:", excelData.length);
+			if (excelData.length > 0) {
+				debugLog("handleFileUploadB => 第一行數據樣本:", Object.keys(excelData[0]));
+			}
 		} catch (ex) {
 			debugError("handleFileUploadB => 解析檔案失敗:", ex);
+			alert('解析檔案失敗：' + ex.message);
 		}
 	};
 	reader.readAsArrayBuffer(file);
@@ -36,6 +52,11 @@ function handleFileUploadB(event) {
 // 開始分析
 function startAnalysis() {
 	try {
+		// 檢查是否已上傳數據
+		if (!excelData || excelData.length === 0) {
+			throw new Error("請先上傳 Excel 文件");
+		}
+
 		const startDateA = document.getElementById('startDateA').value;
 		const endDateA   = document.getElementById('endDateA').value;
 		const startDateB = document.getElementById('startDateB').value;
@@ -49,13 +70,29 @@ function startAnalysis() {
 			throw new Error("觸發百分比必須為數字");
 		}
 
+		// 驗證日期順序
+		if (new Date(startDateA) > new Date(endDateA)) {
+			throw new Error("A 區段開始日期不能晚於結束日期");
+		}
+		if (new Date(startDateB) > new Date(endDateB)) {
+			throw new Error("B 區段開始日期不能晚於結束日期");
+		}
+
 		debugLog("startAnalysis => A區段:", startDateA, "~", endDateA,
 			"B區段:", startDateB, "~", endDateB, 
-			"觸發百分比:", triggerPercentage
+			"觸發百分比:", triggerPercentage,
+			"總數據筆數:", excelData.length
 		);
 
 		const filteredDataA = filterDataByDate(startDateA, endDateA);
 		const filteredDataB = filterDataByDate(startDateB, endDateB);
+
+		debugLog("startAnalysis => A區段過濾後筆數:", filteredDataA.length,
+			"B區段過濾後筆數:", filteredDataB.length);
+
+		if (filteredDataA.length === 0 && filteredDataB.length === 0) {
+			alert("警告：在指定日期範圍內未找到任何數據，請檢查日期範圍或 Excel 文件格式");
+		}
 
 		const countryCountA = countCountries(filteredDataA);
 		const countryCountB = countCountries(filteredDataB);
@@ -71,30 +108,68 @@ function startAnalysis() {
 function filterDataByDate(startDate, endDate) {
 	try {
 		const start = new Date(startDate);
+		start.setHours(0, 0, 0, 0); // 設置為當天開始時間
 		const end = new Date(endDate);
+		end.setHours(23, 59, 59, 999); // 設置為當天結束時間
 
 		debugLog("filterDataByDate => 開始篩選:", { start, end });
 
+		// 嘗試多種可能的列名
+		const caseNumberKeys = ['申请编号', '申請編號', '申请編號', '申請编号'];
+		
 		return excelData.filter((row, idx) => {
-			const caseNumber = row['申请编号'];
-			if (!caseNumber || caseNumber.length < 8) {
-				debugLog(`Row #${idx} => 申请编号無效:`, caseNumber);
+			// 尋找申請編號列
+			let caseNumber = null;
+			for (const key of caseNumberKeys) {
+				if (row.hasOwnProperty(key) && row[key]) {
+					caseNumber = String(row[key]).trim();
+					break;
+				}
+			}
+
+			if (!caseNumber) {
+				if (idx < 5) { // 只記錄前5個無效案例，避免日誌過多
+					debugLog(`Row #${idx} => 未找到申请编号列`);
+				}
 				return false;
 			}
 
-			const year = caseNumber.substring(0, 4);
-			const month = caseNumber.substring(4, 6);
-			const day = caseNumber.substring(6, 8);
-			const dateStr = `${year}-${month}-${day}`;
-			const date = new Date(dateStr);
+			// 提取日期：嘗試多種格式
+			// 格式1: YYYYMMDD (前8位數字)
+			// 格式2: YYYY-MM-DD
+			// 格式3: YYYY/MM/DD
+			let dateStr = null;
+			let date = null;
 
-			if (isNaN(date)) {
-				debugLog(`Row #${idx} => 日期解析失敗:`, dateStr);
+			// 嘗試從前8位數字提取日期
+			const dateMatch = caseNumber.match(/^(\d{4})(\d{2})(\d{2})/);
+			if (dateMatch) {
+				const year = dateMatch[1];
+				const month = dateMatch[2];
+				const day = dateMatch[3];
+				dateStr = `${year}-${month}-${day}`;
+				date = new Date(dateStr);
+			} else {
+				// 嘗試匹配標準日期格式
+				const standardDateMatch = caseNumber.match(/(\d{4})[-/](\d{2})[-/](\d{2})/);
+				if (standardDateMatch) {
+					dateStr = `${standardDateMatch[1]}-${standardDateMatch[2]}-${standardDateMatch[3]}`;
+					date = new Date(dateStr);
+				}
+			}
+
+			if (!date || isNaN(date.getTime())) {
+				if (idx < 5) { // 只記錄前5個解析失敗的案例
+					debugLog(`Row #${idx} => 日期解析失敗, 申请编号=${caseNumber}`);
+				}
 				return false;
 			}
 
+			// 驗證日期是否在範圍內
 			const inRange = (date >= start && date <= end);
-			debugLog(`Row #${idx} => 申请编号=${caseNumber}, 日期=${dateStr}, inRange=${inRange}`);
+			if (idx < 5) { // 只記錄前5個案例的詳細信息
+				debugLog(`Row #${idx} => 申请编号=${caseNumber}, 日期=${dateStr}, inRange=${inRange}`);
+			}
 			return inRange;
 		});
 	} catch (ex) {
@@ -107,25 +182,98 @@ function filterDataByDate(startDate, endDate) {
 function countCountries(data) {
 	try {
 		let countryCounter = {};
+		let skippedCount = 0;
+
+		// 嘗試多種可能的列名
+		const isCNKeys = ['司法机构-是否属于中国大陆', '司法機構-是否屬於中國大陸', '是否属于中国大陆', '是否屬於中國大陸'];
+		const countryKeys = ['司法机构-所在国家', '司法機構-所在國家', '所在国家', '所在國家'];
 
 		data.forEach((row, idx) => {
-			const isCN = row['司法机构-是否属于中国大陆'];
-			const nat = row['司法机构-所在国家'];
-			let country;
+			// 尋找「是否属于中国大陆」列
+			let isCN = null;
+			for (const key of isCNKeys) {
+				if (row.hasOwnProperty(key)) {
+					isCN = row[key];
+					break;
+				}
+			}
 
-			if (isCN === '中国大陆') {
-				country = '中国大陆';
-			} else if (isCN === '否' && nat) {
-				country = nat.trim().toLowerCase();
+			// 尋找「所在国家」列
+			let nat = null;
+			for (const key of countryKeys) {
+				if (row.hasOwnProperty(key)) {
+					nat = row[key];
+					break;
+				}
+			}
+
+			// 標準化值（轉為字符串並去除空格）
+			if (isCN !== null && isCN !== undefined) {
+				isCN = String(isCN).trim();
+			}
+			if (nat !== null && nat !== undefined) {
+				nat = String(nat).trim();
+			}
+
+			let country = null;
+
+			// 統一處理中國的各種變體名稱
+			const normalizeChinaName = (name) => {
+				if (!name) return null;
+				const chinaVariants = ['中国大陆', '中國大陸', '中国', '中國', 'china', 'chinese mainland'];
+				const normalized = name.trim();
+				// 檢查是否為中國的變體（不區分大小寫）
+				for (const variant of chinaVariants) {
+					if (normalized === variant || normalized.toLowerCase() === variant.toLowerCase()) {
+						return '中國';
+					}
+				}
+				return normalized;
+			};
+
+			// 判斷國家邏輯
+			// 1. 如果明確標記為「中国大陆」或「是」，則為中國
+			if (isCN === '中国大陆' || isCN === '中國大陸' || isCN === '是' || isCN === 'Yes' || isCN === 'YES') {
+				country = '中國';
+			}
+			// 2. 如果標記為「否」且有國家信息，使用國家信息
+			else if ((isCN === '否' || isCN === 'No' || isCN === 'NO' || isCN === '') && nat && nat.length > 0) {
+				// 標準化國家名稱：去除多餘空格
+				let normalizedNat = nat.replace(/\s+/g, ' ').trim();
+				// 統一處理中國的各種變體
+				country = normalizeChinaName(normalizedNat);
+				if (!country) {
+					// 如果不是中國，則轉為小寫（適用於英文國家名）
+					country = normalizedNat.toLowerCase();
+				}
+			}
+			// 3. 如果 isCN 為空但 nat 有值，也使用國家信息
+			else if ((!isCN || isCN === '') && nat && nat.length > 0) {
+				// 標準化國家名稱：去除多餘空格
+				let normalizedNat = nat.replace(/\s+/g, ' ').trim();
+				// 統一處理中國的各種變體
+				country = normalizeChinaName(normalizedNat);
+				if (!country) {
+					// 如果不是中國，則轉為小寫（適用於英文國家名）
+					country = normalizedNat.toLowerCase();
+				}
+			}
+			// 4. 如果只有 isCN 為「否」但沒有國家信息，跳過
+			else {
+				skippedCount++;
+				if (idx < 10) { // 只記錄前10個跳過的案例
+					debugLog(`Row #${idx} => 國家資訊不足, isCN=${isCN}, nat=${nat}`);
+				}
 			}
 
 			if (country) {
 				countryCounter[country] = (countryCounter[country] || 0) + 1;
-			} else {
-				debugLog(`Row #${idx} => 國家資訊不足, isCN=${isCN}, nat=${nat}`);
 			}
 		});
 
+		if (skippedCount > 0) {
+			debugLog(`countCountries => 跳過了 ${skippedCount} 筆國家資訊不足的記錄`);
+		}
 		debugLog("countCountries => 分析結果:", countryCounter);
 		return countryCounter;
 	} catch (ex) {
@@ -180,7 +328,10 @@ function fixCountryName(country) {
 	const countryMap = {
 		"USA": "美國",
 		"美国": "美國",
-		"中国大陆": "中國大陸",
+		"中国大陆": "中國",
+		"中國大陸": "中國",
+		"中国": "中國",
+		"中國": "中國",
 		"中國臺灣": "台灣",
 		"dubai": "杜拜",
 	};
