@@ -1,48 +1,28 @@
-// inputHandler.js
+// inputHandler.ts
 
-/**
- * 使用 libphonenumber-js 解析以 "+" 開頭的國際號碼，
- * 僅在「國碼」與「本地號碼」之間放一個 dash，格式為：<國碼>-<本地號碼>。
- *
- * 若號碼不是以 "+" 開頭，則採用簡單啟發式處理：
- * 1. 移除所有空格、括號、連字號。
- * 2. 若以 "0" 開頭且長度為 10，假設為台灣手機：回傳 "886-後9碼"。
- * 3. 若長度大於 10，假設前面部分為國碼：國碼長度 = 總長度 - 10。
- * 4. 其他情況下直接回傳清理後的數字。
- */
-function formatPhoneNumberAuto(phoneStr) {
-	// 移除空格、括號、連字號
-	let cleaned = phoneStr.replace(/[\s\-\(\)]/g, "");
+import {
+	isValidBTCAddress,
+	isValidEVMAddress,
+	isValidLTCAddress,
+	isValidTRONAddress,
+	isValidSOLAddress,
+	isValidXMRAddress,
+	isValidKaspaAddress,
+	isValidSuiAddress,
+	isValidAptosAddress,
+	isValidADAAddress,
+	isValidBTCTxID,
+	isValidEVMTxID,
+	isValidLTCTxID,
+	isValidTRONTxID,
+	isValidSOLTxID,
+	isValidXMRTxID,
+	isValidKaspaTxID,
+	isValidSuiTxID,
+	isValidAptosTxID,
+	isValidADATxID
+} from './validations';
 
-	// 如果以 "+" 開頭，嘗試用 libphonenumber-js 解析
-	if (cleaned.startsWith("+")) {
-		try {
-			const phoneNumber = libphonenumber.parsePhoneNumberFromString(cleaned);
-			if (phoneNumber) {
-				return phoneNumber.countryCallingCode + "-" + phoneNumber.nationalNumber;
-			}
-		} catch (e) {
-			console.error("解析國際號碼錯誤:", e);
-		}
-		// 若解析失敗，移除 "+" 後繼續下方啟發式
-		cleaned = cleaned.substring(1);
-	}
-
-	// 啟發式處理：沒有 "+" 的情況
-	// 若以 "0" 開頭且長度為 10，假設為台灣手機
-	if (cleaned.startsWith("0") && cleaned.length === 10) {
-		return "886-" + cleaned.substring(1);
-	}
-
-	// 若長度 > 10，假設前面部分為國碼
-	if (cleaned.length > 10) {
-		let countryCodeLength = cleaned.length - 10;
-		return cleaned.substring(0, countryCodeLength) + "-" + cleaned.substring(countryCodeLength);
-	}
-
-	// 其他情況，直接回傳清理後的數字
-	return cleaned;
-}
 
 /**
  * 處理單筆輸入：
@@ -51,10 +31,18 @@ function formatPhoneNumberAuto(phoneStr) {
  * - 如果勾選「檢查格式」且信息類型為充值地址或 TXID，則進行格式驗證
  * - 驗證通過後呼叫 addRow() 將資料新增至表格
  */
-function handleSingleInput() {
-	var caseNumber = document.getElementById("caseNumber").value;
-	var infoType = document.getElementById("infoType").value;
-	var infoDetail = document.getElementById("infoDetail").value.trim();
+function handleSingleInput(): void {
+	const caseNumberInput = document.getElementById("caseNumber") as HTMLInputElement;
+	const infoTypeSelect = document.getElementById("infoType") as HTMLSelectElement;
+	const infoDetailInput = document.getElementById("infoDetail") as HTMLInputElement;
+	
+	if (!caseNumberInput || !infoTypeSelect || !infoDetailInput) {
+		alert("無法找到必要的輸入元素");
+		return;
+	}
+
+	const infoType = infoTypeSelect.value;
+	let infoDetail = infoDetailInput.value.trim();
 	
 	if (!infoDetail) {
 		alert("信息内容不能为空");
@@ -63,14 +51,17 @@ function handleSingleInput() {
 	
 	// 若信息類型為「手机号码」，則加上電話區碼
 	if (infoType === "手机号码") {
-		var prefix = document.getElementById("phonePrefix").value.trim();
-		if (prefix) {
-			infoDetail = prefix + "-" + infoDetail;
+		const phonePrefixInput = document.getElementById("phonePrefix") as HTMLInputElement;
+		if (phonePrefixInput) {
+			const prefix = phonePrefixInput.value.trim();
+			if (prefix) {
+				infoDetail = prefix + "-" + infoDetail;
+			}
 		}
 	}
 	
 	addRow(infoType, infoDetail);
-	document.getElementById("infoDetail").value = "";
+	infoDetailInput.value = "";
 }
 
 /**
@@ -78,8 +69,14 @@ function handleSingleInput() {
  * - 以換行分割輸入的內容，逐行處理
  * - 移除所有空白（含行內空格）與雙引號、單引號，將結果視為單一筆資料
  */
-function handleBulkInput() {
-	const bulkText = document.getElementById("bulkInput").value;
+function handleBulkInput(): void {
+	const bulkInput = document.getElementById("bulkInput") as HTMLTextAreaElement;
+	if (!bulkInput) {
+		alert("無法找到批量輸入元素");
+		return;
+	}
+
+	const bulkText = bulkInput.value;
 	if (!bulkText) {
 		alert("批量信息不能为空");
 		return;
@@ -87,7 +84,7 @@ function handleBulkInput() {
 
 	// 以換行拆分
 	const lines = bulkText.split("\n");
-	lines.forEach(function(line) {
+	lines.forEach(function(line: string) {
 		// 移除所有引號與空白字元
 		// [\s] 代表所有空白字元（含空格、tab、換行等）
 		// ["'] 代表雙引號和單引號
@@ -107,19 +104,24 @@ function handleBulkInput() {
 	});
 
 	// 清空批量輸入框!
-	document.getElementById("bulkInput").value = "";
+	bulkInput.value = "";
 }
 
 /**
  * 新增一列資料到調證信息表格
  */
-function addRow(infoType, infoDetail) {
-	var tbody = document.getElementById("infoTable").getElementsByTagName("tbody")[0];
-	var newRow = tbody.insertRow();
+function addRow(infoType: string, infoDetail: string): void {
+	const infoTable = document.getElementById("infoTable");
+	if (!infoTable) return;
+
+	const tbody = infoTable.getElementsByTagName("tbody")[0];
+	if (!tbody) return;
+
+	const newRow = tbody.insertRow();
 	
-	var cellDelete = newRow.insertCell(0);
-	var cellType = newRow.insertCell(1);
-	var cellDetail = newRow.insertCell(2);
+	const cellDelete = newRow.insertCell(0);
+	const cellType = newRow.insertCell(1);
+	const cellDetail = newRow.insertCell(2);
 	
 	cellDelete.innerHTML = '<button class="btn btn-danger btn-sm" onclick="removeRow(this)">刪除</button>';
 	cellType.innerText = infoType;
@@ -131,33 +133,38 @@ function addRow(infoType, infoDetail) {
 /**
  * 刪除指定資料列
  */
-function removeRow(button) {
-	var row = button.parentNode.parentNode;
-	row.parentNode.removeChild(row);
-	updateDataCount();
+function removeRow(button: HTMLButtonElement): void {
+	const row = button.parentElement?.parentElement;
+	if (row && row.parentElement) {
+		row.parentElement.removeChild(row);
+		updateDataCount();
+	}
 }
 
 /**
  * 更新表格下方顯示的資料筆數
  */
-function updateDataCount() {
-	var tbody = document.getElementById("infoTable").getElementsByTagName("tbody")[0];
-	var count = tbody.rows.length;
-	document.getElementById("dataCount").innerText = count;
+function updateDataCount(): void {
+	const infoTable = document.getElementById("infoTable");
+	if (!infoTable) return;
+
+	const tbody = infoTable.getElementsByTagName("tbody")[0];
+	if (!tbody) return;
+
+	const count = tbody.rows.length;
+	const dataCountEl = document.getElementById("dataCount");
+	if (dataCountEl) {
+		dataCountEl.innerText = count.toString();
+	}
 }
 
-/**
- * 根據輸入內容判斷信息類型：
- * 若符合 地址格式，視為 "充值地址"；
- * 若符合 TXID 格式，視為 "TXID"。
- */
 /**
  * 根據輸入內容判斷信息類型：
  * 先檢查是否符合 TXID 格式，若符合則回傳 "TXID"；
  * 否則再檢查是否符合地址格式，若符合則回傳 "充值地址"；
  * 若都不符合，則回傳 null。
  */
-function detectInfoType(infoDetail) {
+function detectInfoType(infoDetail: string): string | null {
 	// 先檢查 TXID 格式
 	if (
 		isValidBTCTxID(infoDetail) ||
@@ -194,13 +201,18 @@ function detectInfoType(infoDetail) {
 /**
  * 複製所有已輸入資料到剪貼簿（依行以換行分隔）
  */
-function copyAllData() {
-	var tbody = document.getElementById("infoTable").getElementsByTagName("tbody")[0];
-	var rows = tbody.rows;
-	var allData = "";
-	for (var i = 0; i < rows.length; i++) {
-		var type = rows[i].cells[1].innerText;
-		var detail = rows[i].cells[2].innerText;
+function copyAllData(): void {
+	const infoTable = document.getElementById("infoTable");
+	if (!infoTable) return;
+
+	const tbody = infoTable.getElementsByTagName("tbody")[0];
+	if (!tbody) return;
+
+	const rows = tbody.rows;
+	let allData = "";
+	for (let i = 0; i < rows.length; i++) {
+		const type = rows[i].cells[1].innerText;
+		const detail = rows[i].cells[2].innerText;
 		allData += type + "：" + detail + "\n";
 	}
 	if (allData) {
@@ -219,16 +231,21 @@ function copyAllData() {
 /**
  * 刪除所有資料列
  */
-function deleteAllData() {
-	var tbody = document.getElementById("infoTable").getElementsByTagName("tbody")[0];
+function deleteAllData(): void {
+	const infoTable = document.getElementById("infoTable");
+	if (!infoTable) return;
+
+	const tbody = infoTable.getElementsByTagName("tbody")[0];
+	if (!tbody) return;
+
 	tbody.innerHTML = "";
 	updateDataCount();
 }
 
 // 監聽信息類型選擇，控制電話區碼輸入欄位的顯示
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function(): void {
 	console.log('DOM Content Loaded');
-	const infoTypeSelect = document.getElementById("infoType");
+	const infoTypeSelect = document.getElementById("infoType") as HTMLSelectElement;
 	const phonePrefixContainer = document.getElementById("phonePrefixContainer");
 	
 	if (!infoTypeSelect || !phonePrefixContainer) {
@@ -239,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		return;
 	}
 
-	infoTypeSelect.addEventListener("change", function() {
+	infoTypeSelect.addEventListener("change", function(): void {
 		console.log('Info type changed to:', this.value);
 		if (this.value === "手机号码") {
 			phonePrefixContainer.style.display = "block";
@@ -253,3 +270,11 @@ document.addEventListener('DOMContentLoaded', function() {
 		phonePrefixContainer.style.display = "block";
 	}
 });
+
+// 將函數掛載到全域
+(window as any).handleSingleInput = handleSingleInput;
+(window as any).handleBulkInput = handleBulkInput;
+(window as any).addRow = addRow;
+(window as any).removeRow = removeRow;
+(window as any).copyAllData = copyAllData;
+(window as any).deleteAllData = deleteAllData;

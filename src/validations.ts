@@ -1,9 +1,9 @@
-// validations.js
+// validations.ts
 
 // ====================
 // BTC 地址與 TxID 驗證
 // ====================
-function isValidBTCAddress(address) {
+export function isValidBTCAddress(address: string): boolean {
 	const legacyPattern			= /^[1][a-km-zA-HJ-NP-Z1-9]{24,33}$/;			// Legacy (P2PKH)：以 1 開頭，總長度 25～34
 	const nestedSegwitPattern	= /^[3][a-km-zA-HJ-NP-Z1-9]{24,33}$/;			// Nested Segwit (P2SH-P2WPKH)：以 3 開頭，總長度 25～34
 	const nativeSegwitPattern	= /^bc1q[a-z0-9]{8,87}$/;						// Native Segwit (P2WPKH)：以 bc1q 開頭（簡化檢查）
@@ -18,7 +18,7 @@ function isValidBTCAddress(address) {
 	);
 }
 
-function isValidBTCTxID(txid) {
+export function isValidBTCTxID(txid: string): boolean {
 	// BTC 的 TxID 通常為 64 位十六進制字元
 	return /^[a-fA-F0-9]{64}$/.test(txid);
 }
@@ -26,13 +26,13 @@ function isValidBTCTxID(txid) {
 // ====================
 // EVM 地址與 TxID 驗證
 // ====================
-function isValidEVMAddress(address) {
+export function isValidEVMAddress(address: string): boolean {
 	// EVM 地址：必須以 0x 開頭，後面跟 40 個十六進制字元
 	const evmPattern = /^0x[a-fA-F0-9]{40}$/;
 	return evmPattern.test(address);
 }
 
-function isValidEVMTxID(txid) {
+export function isValidEVMTxID(txid: string): boolean {
 	// EVM TxID：0x 開頭，後面 64 個十六進制字元
 	const evmTxPattern = /^0x[a-fA-F0-9]{64}$/;
 	return evmTxPattern.test(txid);
@@ -41,7 +41,7 @@ function isValidEVMTxID(txid) {
 // ====================
 // LTC 地址與 TxID 驗證
 // ====================
-function isValidLTCAddress(address) {
+export function isValidLTCAddress(address: string): boolean {
 	// P2PKH：以 L 或 M 開頭，26～33 字元
 	const p2pkhPattern	= /^[LM][a-km-zA-HJ-NP-Z1-9]{26,33}$/;
 	// Bech32：以 ltc1 開頭，39～59 字元（簡化檢查）
@@ -49,20 +49,21 @@ function isValidLTCAddress(address) {
 	return p2pkhPattern.test(address) || bech32Pattern.test(address);
 }
 
-function isValidLTCTxID(txid) {
+export function isValidLTCTxID(txid: string): boolean {
 	// 假設 LTC TxID 為 64 個十六進制字元
 	return /^[a-fA-F0-9]{64}$/.test(txid);
 }
+
 // ====================
 // TRON 地址與 TxID 驗證
 // ====================
-function isValidTRONAddress(address) {
+export function isValidTRONAddress(address: string): boolean {
 	// TRON 地址：以 T 開頭，後面 33 個字元（共 34 字元），可包含大小寫與數字
 	const tronPattern = /^T[a-zA-Z0-9]{33}$/;
 	return tronPattern.test(address);
 }
 
-function isValidTRONTxID(txid) {
+export function isValidTRONTxID(txid: string): boolean {
 	// 假設 TRON TxID 為 64 個十六進制字元
 	return /^[a-fA-F0-9]{64}$/.test(txid);
 }
@@ -70,27 +71,28 @@ function isValidTRONTxID(txid) {
 // ====================
 // SOL 地址與 TxID 驗證
 // ====================
-function isValidSOLAddress(address) {
+export function isValidSOLAddress(address: string): boolean {
 	// Solana 地址：Base58 格式，通常 32～44 字元
 	const solPattern = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 	return solPattern.test(address);
 }
 
-function isValidSOLTxID(txid) {
+export function isValidSOLTxID(txid: string): boolean {
 	// 假設 Solana TxID 為 87-88 個字元（由大小寫字母及數字組成）
 	return /^[A-Za-z0-9]{87,88}$/.test(txid);
 }
+
 // ====================
 // XMR 地址與 TxID 驗證
 // ====================
-function isValidXMRAddress(address) {
+export function isValidXMRAddress(address: string): boolean {
 	// Monero 標準地址：95 字元；集成地址：106 字元（簡化檢查）
 	const standardPattern	= /^[48][0-9A-Za-z]{94}$/;
 	const integratedPattern	= /^[48][0-9A-Za-z]{105}$/;
 	return standardPattern.test(address) || integratedPattern.test(address);
 }
 
-function isValidXMRTxID(txid) {
+export function isValidXMRTxID(txid: string): boolean {
 	// 假設 XMR TxID 為 64 個十六進制字元
 	return /^[a-fA-F0-9]{64}$/.test(txid);
 }
@@ -98,13 +100,14 @@ function isValidXMRTxID(txid) {
 // ====================
 // Kaspa 地址與 TxID 驗證
 // ====================
-function isValidKaspaAddress(address) {
+export function isValidKaspaAddress(address: string): boolean {
 	// 假設 Kaspa 地址以 "kaspa:" 開頭，後面至少 50 個小寫英數字
 	const lowerAddr		= address.toLowerCase();
 	const kaspaPattern	= /^kaspa:[a-z0-9]{50,}$/;
 	return kaspaPattern.test(lowerAddr);
 }
-function isValidKaspaTxID(txid) {
+
+export function isValidKaspaTxID(txid: string): boolean {
 	// 假設 Kaspa TxID 為 64 個十六進制字元
 	return /^[a-fA-F0-9]{64}$/.test(txid);
 }
@@ -112,12 +115,13 @@ function isValidKaspaTxID(txid) {
 // ====================
 // Sui 地址與 TxID 驗證
 // ====================
-function isValidSuiAddress(address) {
+export function isValidSuiAddress(address: string): boolean {
 	// 假設 Sui 地址必須以 0x 開頭，後面跟 64 個十六進制字元
 	const suiPattern = /^0x[a-fA-F0-9]{64}$/;
 	return suiPattern.test(address);
 }
-function isValidSuiTxID(txid) {
+
+export function isValidSuiTxID(txid: string): boolean {
 	// 假設 Sui TxID 為 64 個十六進制字元
 	return /^[a-fA-F0-9]{64}$/.test(txid);
 }
@@ -125,12 +129,13 @@ function isValidSuiTxID(txid) {
 // ====================
 // Aptos 地址與 TxID 驗證
 // ====================
-function isValidAptosAddress(address) {
+export function isValidAptosAddress(address: string): boolean {
 	// 假設 Aptos 地址必須以 0x 開頭，後面跟 1～64 個十六進制字元
 	const aptosPattern = /^0x[a-fA-F0-9]{1,64}$/;
 	return aptosPattern.test(address);
 }
-function isValidAptosTxID(txid) {
+
+export function isValidAptosTxID(txid: string): boolean {
 	// 假設 Aptos TxID 為 64 個十六進制字元
 	return /^[a-fA-F0-9]{64}$/.test(txid);
 }
@@ -138,13 +143,14 @@ function isValidAptosTxID(txid) {
 // ====================
 // ADA 地址與 TxID 驗證
 // ====================
-function isValidADAAddress(address) {
+export function isValidADAAddress(address: string): boolean {
 	// ADA 地址有兩種格式：Shelley（以 addr1 開頭，50～120 字元）與 Byron（以 DdzFF 開頭，至少 50 字元）
 	const shelleyPattern	= /^addr1[0-9a-z]{50,120}$/;
 	const byronPattern		= /^DdzFF[1-9A-HJ-NP-Za-km-z]{50,}$/;
 	return shelleyPattern.test(address) || byronPattern.test(address);
 }
-function isValidADATxID(txid) {
+
+export function isValidADATxID(txid: string): boolean {
 	// 假設 ADA TxID 為 64 個十六進制字元
 	return /^[a-fA-F0-9]{64}$/.test(txid);
 }
@@ -152,7 +158,7 @@ function isValidADATxID(txid) {
 // ====================
 // 統合驗證：依據 infoType 來檢查 infoDetail
 // ====================
-function isValidInfo(infoType, infoDetail) {
+export function isValidInfo(infoType: string, infoDetail: string): boolean {
 	switch (infoType) {
 		case "充值地址":
 			return (
@@ -174,7 +180,7 @@ function isValidInfo(infoType, infoDetail) {
 				isValidLTCTxID(infoDetail) ||
 				isValidTRONTxID(infoDetail) ||
 				isValidSOLTxID(infoDetail) ||
-                                isValidXMRTxID(infoDetail) ||
+				isValidXMRTxID(infoDetail) ||
 				isValidKaspaTxID(infoDetail) ||
 				isValidSuiTxID(infoDetail) ||
 				isValidAptosTxID(infoDetail) ||
@@ -189,23 +195,23 @@ function isValidInfo(infoType, infoDetail) {
 // ====================
 // 將函式掛載至全域 (讓其他檔案可以直接存取)
 // ====================
-window.isValidBTCAddress	= isValidBTCAddress;
-window.isValidEVMAddress	= isValidEVMAddress;
-window.isValidLTCAddress	= isValidLTCAddress;
-window.isValidTRONAddress	= isValidTRONAddress;
-window.isValidSOLAddress	= isValidSOLAddress;
-window.isValidXMRAddress	= isValidXMRAddress;
-window.isValidKaspaAddress	= isValidKaspaAddress;
-window.isValidKaspaTxID		= isValidKaspaTxID;
-window.isValidSuiAddress	= isValidSuiAddress;
-window.isValidSuiTxID		= isValidSuiTxID;
-window.isValidAptosAddress	= isValidAptosAddress;
-window.isValidAptosTxID		= isValidAptosTxID;
-window.isValidADAAddress	= isValidADAAddress;
-window.isValidADATxID		= isValidADATxID;
-window.isValidEVMTxID		= isValidEVMTxID;
-window.isValidLTCTxID		= isValidLTCTxID;
-window.isValidTRONTxID		= isValidTRONTxID;
-window.isValidSOLTxID		= isValidSOLTxID;
-window.isValidXMRTxID		= isValidXMRTxID;
-window.isValidInfo		= isValidInfo;
+(window as any).isValidBTCAddress	= isValidBTCAddress;
+(window as any).isValidEVMAddress	= isValidEVMAddress;
+(window as any).isValidLTCAddress	= isValidLTCAddress;
+(window as any).isValidTRONAddress	= isValidTRONAddress;
+(window as any).isValidSOLAddress	= isValidSOLAddress;
+(window as any).isValidXMRAddress	= isValidXMRAddress;
+(window as any).isValidKaspaAddress	= isValidKaspaAddress;
+(window as any).isValidKaspaTxID		= isValidKaspaTxID;
+(window as any).isValidSuiAddress	= isValidSuiAddress;
+(window as any).isValidSuiTxID		= isValidSuiTxID;
+(window as any).isValidAptosAddress	= isValidAptosAddress;
+(window as any).isValidAptosTxID		= isValidAptosTxID;
+(window as any).isValidADAAddress	= isValidADAAddress;
+(window as any).isValidADATxID		= isValidADATxID;
+(window as any).isValidEVMTxID		= isValidEVMTxID;
+(window as any).isValidLTCTxID		= isValidLTCTxID;
+(window as any).isValidTRONTxID		= isValidTRONTxID;
+(window as any).isValidSOLTxID		= isValidSOLTxID;
+(window as any).isValidXMRTxID		= isValidXMRTxID;
+(window as any).isValidInfo		= isValidInfo;

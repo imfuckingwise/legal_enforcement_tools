@@ -1,29 +1,36 @@
-// analysisHandler.js
+// analysisHandler.ts
 
-let excelData = [];
+interface ExcelRow {
+	[key: string]: any;
+}
+
+let excelData: ExcelRow[] = [];
 
 // 上傳B區段檔案處理
-function handleFileUploadB(event) {
-	const file = event.target.files[0];
+function handleFileUploadB(event: Event): void {
+	const target = event.target as HTMLInputElement;
+	const file = target.files?.[0];
 
 	if (!file) {
-		debugError("handleFileUploadB => 未選擇任何檔案");
+		window.debugError("handleFileUploadB => 未選擇任何檔案");
 		return;
 	}
 
 	if (!file.name.includes('客服-执法请求跟进')) {
 		alert('上傳失敗：檔案名稱必須包含 "客服-执法请求跟进"');
-		debugLog("handleFileUploadB => 檔案名稱不符合:", file.name);
+		window.debugLog("handleFileUploadB => 檔案名稱不符合:", file.name);
 		return;
 	}
 
 	const reader = new FileReader();
-	reader.onload = function(e) {
+	reader.onload = function(e: ProgressEvent<FileReader>): void {
+		if (!e.target || !e.target.result) return;
+
 		try {
-			const data = new Uint8Array(e.target.result);
-			const workbook = XLSX.read(data, { type: 'array' });
+			const data = new Uint8Array(e.target.result as ArrayBuffer);
+			const workbook = window.XLSX.read(data, { type: 'array' });
 			const sheet = workbook.Sheets[workbook.SheetNames[0]];
-			excelData = XLSX.utils.sheet_to_json(sheet);
+			excelData = window.XLSX.utils.sheet_to_json(sheet) as ExcelRow[];
 
 			// 檢查必要的列是否存在
 			if (excelData.length > 0) {
@@ -32,17 +39,17 @@ function handleFileUploadB(event) {
 				const hasCaseNumber = requiredColumns.some(col => firstRow.hasOwnProperty(col));
 				
 				if (!hasCaseNumber) {
-					debugLog("handleFileUploadB => 警告：未找到「申请编号」列，可用列名:", Object.keys(firstRow));
+					window.debugLog("handleFileUploadB => 警告：未找到「申请编号」列，可用列名:", Object.keys(firstRow));
 					alert('警告：未找到「申请编号」列，請檢查 Excel 文件格式');
 				}
 			}
 
-			debugLog("handleFileUploadB => 解析成功, 筆數:", excelData.length);
+			window.debugLog("handleFileUploadB => 解析成功, 筆數:", excelData.length);
 			if (excelData.length > 0) {
-				debugLog("handleFileUploadB => 第一行數據樣本:", Object.keys(excelData[0]));
+				window.debugLog("handleFileUploadB => 第一行數據樣本:", Object.keys(excelData[0]));
 			}
-		} catch (ex) {
-			debugError("handleFileUploadB => 解析檔案失敗:", ex);
+		} catch (ex: any) {
+			window.debugError("handleFileUploadB => 解析檔案失敗:", ex);
 			alert('解析檔案失敗：' + ex.message);
 		}
 	};
@@ -50,18 +57,28 @@ function handleFileUploadB(event) {
 }
 
 // 開始分析
-function startAnalysis() {
+function startAnalysis(): void {
 	try {
 		// 檢查是否已上傳數據
 		if (!excelData || excelData.length === 0) {
 			throw new Error("請先上傳 Excel 文件");
 		}
 
-		const startDateA = document.getElementById('startDateA').value;
-		const endDateA   = document.getElementById('endDateA').value;
-		const startDateB = document.getElementById('startDateB').value;
-		const endDateB   = document.getElementById('endDateB').value;
-		const triggerPercentage = parseFloat(document.getElementById('triggerPercentage').value);
+		const startDateAInput = document.getElementById('startDateA') as HTMLInputElement;
+		const endDateAInput = document.getElementById('endDateA') as HTMLInputElement;
+		const startDateBInput = document.getElementById('startDateB') as HTMLInputElement;
+		const endDateBInput = document.getElementById('endDateB') as HTMLInputElement;
+		const triggerPercentageInput = document.getElementById('triggerPercentage') as HTMLInputElement;
+
+		if (!startDateAInput || !endDateAInput || !startDateBInput || !endDateBInput || !triggerPercentageInput) {
+			throw new Error("無法找到必要的輸入元素");
+		}
+
+		const startDateA = startDateAInput.value;
+		const endDateA   = endDateAInput.value;
+		const startDateB = startDateBInput.value;
+		const endDateB   = endDateBInput.value;
+		const triggerPercentage = parseFloat(triggerPercentageInput.value);
 
 		if (!startDateA || !endDateA || !startDateB || !endDateB) {
 			throw new Error("請選擇 A/B 區段的開始與結束日期");
@@ -78,7 +95,7 @@ function startAnalysis() {
 			throw new Error("B 區段開始日期不能晚於結束日期");
 		}
 
-		debugLog("startAnalysis => A區段:", startDateA, "~", endDateA,
+		window.debugLog("startAnalysis => A區段:", startDateA, "~", endDateA,
 			"B區段:", startDateB, "~", endDateB, 
 			"觸發百分比:", triggerPercentage,
 			"總數據筆數:", excelData.length
@@ -87,7 +104,7 @@ function startAnalysis() {
 		const filteredDataA = filterDataByDate(startDateA, endDateA);
 		const filteredDataB = filterDataByDate(startDateB, endDateB);
 
-		debugLog("startAnalysis => A區段過濾後筆數:", filteredDataA.length,
+		window.debugLog("startAnalysis => A區段過濾後筆數:", filteredDataA.length,
 			"B區段過濾後筆數:", filteredDataB.length);
 
 		if (filteredDataA.length === 0 && filteredDataB.length === 0) {
@@ -98,28 +115,28 @@ function startAnalysis() {
 		const countryCountB = countCountries(filteredDataB);
 
 		displayAnalysisResults(countryCountA, countryCountB, triggerPercentage);
-	} catch (ex) {
-		debugError("startAnalysis => 發生錯誤:", ex);
+	} catch (ex: any) {
+		window.debugError("startAnalysis => 發生錯誤:", ex);
 		alert(ex.message);
 	}
 }
 
 // 根據「申请编号」中的日期過濾
-function filterDataByDate(startDate, endDate) {
+function filterDataByDate(startDate: string, endDate: string): ExcelRow[] {
 	try {
 		const start = new Date(startDate);
 		start.setHours(0, 0, 0, 0); // 設置為當天開始時間
 		const end = new Date(endDate);
 		end.setHours(23, 59, 59, 999); // 設置為當天結束時間
 
-		debugLog("filterDataByDate => 開始篩選:", { start, end });
+		window.debugLog("filterDataByDate => 開始篩選:", { start, end });
 
 		// 嘗試多種可能的列名
 		const caseNumberKeys = ['申请编号', '申請編號', '申请編號', '申請编号'];
 		
 		return excelData.filter((row, idx) => {
 			// 尋找申請編號列
-			let caseNumber = null;
+			let caseNumber: string | null = null;
 			for (const key of caseNumberKeys) {
 				if (row.hasOwnProperty(key) && row[key]) {
 					caseNumber = String(row[key]).trim();
@@ -129,7 +146,7 @@ function filterDataByDate(startDate, endDate) {
 
 			if (!caseNumber) {
 				if (idx < 5) { // 只記錄前5個無效案例，避免日誌過多
-					debugLog(`Row #${idx} => 未找到申请编号列`);
+					window.debugLog(`Row #${idx} => 未找到申请编号列`);
 				}
 				return false;
 			}
@@ -138,8 +155,8 @@ function filterDataByDate(startDate, endDate) {
 			// 格式1: YYYYMMDD (前8位數字)
 			// 格式2: YYYY-MM-DD
 			// 格式3: YYYY/MM/DD
-			let dateStr = null;
-			let date = null;
+			let dateStr: string | null = null;
+			let date: Date | null = null;
 
 			// 嘗試從前8位數字提取日期
 			const dateMatch = caseNumber.match(/^(\d{4})(\d{2})(\d{2})/);
@@ -160,7 +177,7 @@ function filterDataByDate(startDate, endDate) {
 
 			if (!date || isNaN(date.getTime())) {
 				if (idx < 5) { // 只記錄前5個解析失敗的案例
-					debugLog(`Row #${idx} => 日期解析失敗, 申请编号=${caseNumber}`);
+					window.debugLog(`Row #${idx} => 日期解析失敗, 申请编号=${caseNumber}`);
 				}
 				return false;
 			}
@@ -168,20 +185,20 @@ function filterDataByDate(startDate, endDate) {
 			// 驗證日期是否在範圍內
 			const inRange = (date >= start && date <= end);
 			if (idx < 5) { // 只記錄前5個案例的詳細信息
-				debugLog(`Row #${idx} => 申请编号=${caseNumber}, 日期=${dateStr}, inRange=${inRange}`);
+				window.debugLog(`Row #${idx} => 申请编号=${caseNumber}, 日期=${dateStr}, inRange=${inRange}`);
 			}
 			return inRange;
 		});
-	} catch (ex) {
-		debugError("filterDataByDate => 發生錯誤:", ex);
+	} catch (ex: any) {
+		window.debugError("filterDataByDate => 發生錯誤:", ex);
 		return [];
 	}
 }
 
 // 計算各國家
-function countCountries(data) {
+function countCountries(data: ExcelRow[]): Record<string, number> {
 	try {
-		let countryCounter = {};
+		let countryCounter: Record<string, number> = {};
 		let skippedCount = 0;
 
 		// 嘗試多種可能的列名
@@ -190,7 +207,7 @@ function countCountries(data) {
 
 		data.forEach((row, idx) => {
 			// 尋找「是否属于中国大陆」列
-			let isCN = null;
+			let isCN: any = null;
 			for (const key of isCNKeys) {
 				if (row.hasOwnProperty(key)) {
 					isCN = row[key];
@@ -199,7 +216,7 @@ function countCountries(data) {
 			}
 
 			// 尋找「所在国家」列
-			let nat = null;
+			let nat: any = null;
 			for (const key of countryKeys) {
 				if (row.hasOwnProperty(key)) {
 					nat = row[key];
@@ -215,10 +232,10 @@ function countCountries(data) {
 				nat = String(nat).trim();
 			}
 
-			let country = null;
+			let country: string | null = null;
 
 			// 統一處理中國的各種變體名稱
-			const normalizeChinaName = (name) => {
+			const normalizeChinaName = (name: string): string | null => {
 				if (!name) return null;
 				const chinaVariants = ['中国大陆', '中國大陸', '中国', '中國', 'china', 'chinese mainland'];
 				const normalized = name.trim();
@@ -262,7 +279,7 @@ function countCountries(data) {
 			else {
 				skippedCount++;
 				if (idx < 10) { // 只記錄前10個跳過的案例
-					debugLog(`Row #${idx} => 國家資訊不足, isCN=${isCN}, nat=${nat}`);
+					window.debugLog(`Row #${idx} => 國家資訊不足, isCN=${isCN}, nat=${nat}`);
 				}
 			}
 
@@ -272,19 +289,21 @@ function countCountries(data) {
 		});
 
 		if (skippedCount > 0) {
-			debugLog(`countCountries => 跳過了 ${skippedCount} 筆國家資訊不足的記錄`);
+			window.debugLog(`countCountries => 跳過了 ${skippedCount} 筆國家資訊不足的記錄`);
 		}
-		debugLog("countCountries => 分析結果:", countryCounter);
+		window.debugLog("countCountries => 分析結果:", countryCounter);
 		return countryCounter;
-	} catch (ex) {
-		debugError("countCountries => 發生錯誤:", ex);
+	} catch (ex: any) {
+		window.debugError("countCountries => 發生錯誤:", ex);
 		return {};
 	}
 }
 
 // 顯示分析結果
-function displayAnalysisResults(countA, countB, triggerPercentage) {
+function displayAnalysisResults(countA: Record<string, number>, countB: Record<string, number>, triggerPercentage: number): void {
 	const resultsBody = document.getElementById('analysisResultsBody');
+	if (!resultsBody) return;
+
 	resultsBody.innerHTML = '';
 
 	const countries = new Set([...Object.keys(countA), ...Object.keys(countB)]);
@@ -306,8 +325,8 @@ function displayAnalysisResults(countA, countB, triggerPercentage) {
 		const growthCell = document.createElement('td');
 
 		countryCell.textContent = country;
-		countACell.textContent = countAValue;
-		countBCell.textContent = countBValue;
+		countACell.textContent = countAValue.toString();
+		countBCell.textContent = countBValue.toString();
 		growthCell.textContent = growthPercentage.toFixed(2) + '%';
 
 		if (growthPercentage >= triggerPercentage) {
@@ -320,12 +339,12 @@ function displayAnalysisResults(countA, countB, triggerPercentage) {
 		row.appendChild(growthCell);
 		resultsBody.appendChild(row);
 	});
-	debugLog("displayAnalysisResults => 完成呈現");
+	window.debugLog("displayAnalysisResults => 完成呈現");
 }
 
-function fixCountryName(country) {
+function fixCountryName(country: string): string {
 	// 用字典映射將需要修改的國家名稱對應到修正名稱
-	const countryMap = {
+	const countryMap: Record<string, string> = {
 		"USA": "美國",
 		"美国": "美國",
 		"中国大陆": "中國",
@@ -341,13 +360,21 @@ function fixCountryName(country) {
 }
 
 // 生成並複製「超過增長百分比」的報告
-function generateAndCopyExceedingReport() {
-	const resultsBody = document
-		.getElementById('analysisResultsBody')
-		.getElementsByTagName('tr');
-	let reportContent = [];
+function generateAndCopyExceedingReport(): void {
+	const resultsBody = document.getElementById('analysisResultsBody');
+	if (!resultsBody) return;
 
-	for (let row of resultsBody) {
+	const rows = resultsBody.getElementsByTagName('tr');
+	let reportContent: Array<{
+		country: string;
+		aCount: number;
+		bCount: number;
+		growthPercentage: number;
+		formatted: string;
+	}> = [];
+
+	for (let i = 0; i < rows.length; i++) {
+		const row = rows[i];
 		const country = row.cells[0].innerText;
 		const aCount = parseInt(row.cells[1].innerText);
 		const bCount = parseInt(row.cells[2].innerText);
@@ -377,20 +404,24 @@ function generateAndCopyExceedingReport() {
 		.catch(err => alert('複製失敗：' + err));
 }
 
-
 // 生成並複製「本週案件數量前N名」
-function generateAndCopyTopNReport(isPDFExport = false) {
+function generateAndCopyTopNReport(isPDFExport: boolean = false): Array<[string, string]> {
 	// 取得使用者輸入的數字，若無效則預設 5
-	let topN = parseInt(document.getElementById('topNInput').value);
+	const topNInput = document.getElementById('topNInput') as HTMLInputElement;
+	let topN = topNInput ? parseInt(topNInput.value) : 5;
 	if (isNaN(topN) || topN <= 0) {
 		topN = 5;
 	}
 
 	// 從分析結果表格中取得每個國家及其案件數（假設 B 區段案件數在第三欄）
-	const resultsBody = document.getElementById('analysisResultsBody').getElementsByTagName('tr');
-	let countryCount = {};
+	const resultsBody = document.getElementById('analysisResultsBody');
+	if (!resultsBody) return [];
 
-	for (let row of resultsBody) {
+	const rows = resultsBody.getElementsByTagName('tr');
+	let countryCount: Record<string, number> = {};
+
+	for (let i = 0; i < rows.length; i++) {
+		const row = rows[i];
 		let country = row.cells[0].innerText;
 		const bCount = parseInt(row.cells[2].innerText);
 		// 使用 fixCountryName 進行名稱修正
@@ -404,9 +435,9 @@ function generateAndCopyTopNReport(isPDFExport = false) {
 	let sortedCountries = Object.entries(countryCount).sort((a, b) => b[1] - a[1]);
 
 	// 依據案件數量將相同數量的國家並列
-	let topNRows = [];
+	let topNRows: Array<[string, string]> = [];
 	let currentRankValue = -1;
-	let rankGroups = [];
+	let rankGroups: string[] = [];
 	let outputRankCount = 0;
 
 	// 整理報告：將案件數相同的國家列為同一排名
@@ -444,7 +475,7 @@ function generateAndCopyTopNReport(isPDFExport = false) {
 	return topNRows;
 }
 
-function exportPDFReport() {
+function exportPDFReport(): void {
 	try {
 		const { jsPDF } = window.jspdf;
 		const doc = new jsPDF({
@@ -461,13 +492,24 @@ function exportPDFReport() {
 		doc.setFontSize(20);
 
 		// 2) 取得 UI 上 A/B 區段、topN
-		const startDateA = document.getElementById('startDateA').value;
-		const endDateA   = document.getElementById('endDateA').value;
-		const startDateB = document.getElementById('startDateB').value;
-		const endDateB   = document.getElementById('endDateB').value;
-		let topN         = parseInt(document.getElementById('topNInput').value);
+		const startDateAInput = document.getElementById('startDateA') as HTMLInputElement;
+		const endDateAInput = document.getElementById('endDateA') as HTMLInputElement;
+		const startDateBInput = document.getElementById('startDateB') as HTMLInputElement;
+		const endDateBInput = document.getElementById('endDateB') as HTMLInputElement;
+		const topNInput = document.getElementById('topNInput') as HTMLInputElement;
+		const triggerPercentageInput = document.getElementById('triggerPercentage') as HTMLInputElement;
+
+		if (!startDateAInput || !endDateAInput || !startDateBInput || !endDateBInput || !topNInput || !triggerPercentageInput) {
+			throw new Error("無法找到必要的輸入元素");
+		}
+
+		const startDateA = startDateAInput.value;
+		const endDateA   = endDateAInput.value;
+		const startDateB = startDateBInput.value;
+		const endDateB   = endDateBInput.value;
+		let topN         = parseInt(topNInput.value);
 		if (isNaN(topN) || topN <= 0) topN = 5; // 預設 5
-		const triggerPercentage = parseFloat(document.getElementById('triggerPercentage').value) || 50;
+		const triggerPercentage = parseFloat(triggerPercentageInput.value) || 50;
 
 		// 3) 標題
 		doc.text("司法協助報告", 105, 15, { align: "center" });
@@ -501,7 +543,7 @@ function exportPDFReport() {
 			}
 		});
 		// 更新 yPos (autoTable 結束後可得 finalY)
-		yPos = doc.lastAutoTable.finalY + 10;
+		yPos = (doc as any).lastAutoTable.finalY + 10;
 
 		// 8) 顯示異常數據增長觸發百分比
 		doc.setFontSize(14);
@@ -509,11 +551,21 @@ function exportPDFReport() {
 		yPos += 6;
 
 		// 9) 繪製「案件數異常增量分析」表格，根據增長百分比排序
-		const resultsBody = document.getElementById('analysisResultsBody').getElementsByTagName('tr');
-		let reportContent = [];
+		const resultsBody = document.getElementById('analysisResultsBody');
+		if (!resultsBody) return;
+
+		const rows = resultsBody.getElementsByTagName('tr');
+		let reportContent: Array<{
+			country: string;
+			aCount: number;
+			bCount: number;
+			growthPercentage: number;
+			formatted: string;
+		}> = [];
 
 		// 遍歷每一行，處理數據
-		for (let row of resultsBody) {
+		for (let i = 0; i < rows.length; i++) {
+			const row = rows[i];
 			const country = row.cells[0].innerText;
 			const aCount = parseInt(row.cells[1].innerText);
 			const bCount = parseInt(row.cells[2].innerText);
@@ -549,18 +601,18 @@ function exportPDFReport() {
 				font: "NotoSansSC",
 				fontSize: 12
 			},
-			didParseCell: function(data) {
+			didParseCell: function(data: any): void {
 				// 當增長百分比 >= 觸發百分比時，將該行顯示為紅色
 				if (data.section === 'body' && data.column.index === 3) {
 					let rawVal = data.cell.raw;
 					let numericVal = parseFloat(rawVal.replace('%', ''));
 					if (!isNaN(numericVal) && numericVal >= triggerPercentage) {
-						Object.values(data.row.cells).forEach(cell => {
+						Object.values(data.row.cells).forEach((cell: any) => {
 							cell.styles.fillColor = [255, 200, 200];  // 浅红色底
 						});
 					} else {
 						// 若增長百分比小於觸發百分比，底色設為白色
-						Object.values(data.row.cells).forEach(cell => {
+						Object.values(data.row.cells).forEach((cell: any) => {
 							cell.styles.fillColor = [255, 255, 255];  // 白色底
 						});
 					}
@@ -568,21 +620,26 @@ function exportPDFReport() {
 			}
 		});
 		// 更新 yPos (autoTable 結束後可得 finalY)
-		yPos = doc.lastAutoTable.finalY + 10;
+		yPos = (doc as any).lastAutoTable.finalY + 10;
 
 		// 11) 動態檔名 (依 B 區段日期)
 		doc.save(makePDFFileNameByRange(startDateB, endDateB));
-	} catch (ex) {
+	} catch (ex: any) {
 		console.error("exportPDFReport => 產生PDF失敗:", ex);
 		alert("匯出 PDF 時發生錯誤: " + ex.message);
 	}
 }
 
-
-
-function makePDFFileNameByRange(startDate, endDate) {
+function makePDFFileNameByRange(startDate: string, endDate: string): string {
 	if (!startDate || !endDate) return "error.pdf";
 	const s = startDate.replace(/-/g, "");
 	const e = endDate.replace(/-/g, "");
 	return `${s}_${e}_report.pdf`; 
 }
+
+// 將函數掛載到全域
+(window as any).handleFileUploadB = handleFileUploadB;
+(window as any).startAnalysis = startAnalysis;
+(window as any).generateAndCopyExceedingReport = generateAndCopyExceedingReport;
+(window as any).generateAndCopyTopNReport = generateAndCopyTopNReport;
+(window as any).exportPDFReport = exportPDFReport;
