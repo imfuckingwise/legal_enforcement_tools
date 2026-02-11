@@ -1,8 +1,8 @@
 import { Scale } from 'lucide-react'
 
 interface NavbarProps {
-  currentSection: 'input' | 'output' | 'analysis'
-  onSectionChange: (section: 'input' | 'output' | 'analysis') => void
+  currentSection: 'input' | 'output' | 'analysis' | 'case-pack'
+  onSectionChange: (section: 'input' | 'output' | 'analysis' | 'case-pack') => void
   darkMode: boolean
   onToggleDarkMode: () => void
 }
@@ -12,6 +12,7 @@ export default function Navbar({ currentSection, onSectionChange, darkMode, onTo
     { id: 'input' as const, label: '調證信息錄入', icon: '📝' },
     { id: 'output' as const, label: '調證結果輸出', icon: '📊' },
     { id: 'analysis' as const, label: '案件數據分析', icon: '📈' },
+    { id: 'case-pack' as const, label: '案件整理打包', icon: '📦' },
   ]
 
   return (
@@ -26,7 +27,7 @@ export default function Navbar({ currentSection, onSectionChange, darkMode, onTo
               <span className="text-base sm:text-xl font-bold text-gray-900 dark:text-white block">
                 司法調證工具
               </span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">v2.0</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">v2.1</span>
             </div>
           </div>
 

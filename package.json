@@ -1,6 +1,6 @@
 {
   "name": "legal-enforcement-tools",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "司法調證工具 - 用於輔助司法調證工作",
   "type": "module",
   "scripts": {
@@ -20,13 +20,15 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "xlsx": "^0.18.5",
+    "docx": "^9.5.1",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.5.31",
+    "jszip": "^3.10.1",
     "libphonenumber-js": "^1.10.58",
-    "lucide-react": "^0.294.0"
+    "lucide-react": "^0.294.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

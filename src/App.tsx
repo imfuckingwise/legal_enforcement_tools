@@ -3,9 +3,10 @@ import Navbar from './components/Navbar'
 import InputSection from './components/InputSection'
 import OutputSection from './components/OutputSection'
 import AnalysisSection from './components/AnalysisSection'
+import CasePackSection from './components/CasePackSection'
 import { InfoItem, InfoType, MergedResultItem, ExcelRow, AnalysisResult } from './types'
 
-type Section = 'input' | 'output' | 'analysis'
+type Section = 'input' | 'output' | 'analysis' | 'case-pack'
 
 function App() {
   const [currentSection, setCurrentSection] = useState<Section>('input')
@@ -120,6 +121,9 @@ function App() {
             analysisResults={analysisResults}
             setAnalysisResults={setAnalysisResults}
           />
+        )}
+        {currentSection === 'case-pack' && (
+          <CasePackSection />
         )}
       </main>
     </div>
