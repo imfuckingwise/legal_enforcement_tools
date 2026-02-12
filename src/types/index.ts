@@ -27,6 +27,16 @@ export interface AnalysisResult {
   growthPercentage: number;
 }
 
+export interface CasePackItem {
+  id: string;
+  workOrderNo: string;
+  agencyEmail: string;
+  agencyName: string;
+  agencyPhone: string;
+  documentNumber: string;
+  uploadedFiles: File[];
+}
+
 export type InfoType = 
   | "充值地址"
   | "TXID"
