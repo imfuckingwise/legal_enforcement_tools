@@ -54,6 +54,7 @@ export default function InputSection({
   ]
 
   const [showPhonePrefix, setShowPhonePrefix] = useState(false)
+  const [invalidBatchItems, setInvalidBatchItems] = useState<string[]>([])
   const { notify, confirm } = useFeedback()
 
   useEffect(() => {
@@ -135,6 +136,7 @@ export default function InputSection({
 
     const lines = bulkInput.split('\n')
     const newItems: InfoItem[] = []
+    const invalidItems: string[] = []
     let invalidCount = 0
 
     lines.forEach(line => {
@@ -149,15 +151,27 @@ export default function InputSection({
           detail
         })
       } else {
+        invalidItems.push(detail)
         invalidCount += 1
       }
     })
 
     setInfoList(prev => [...prev, ...newItems])
     setBulkInput('')
+    setInvalidBatchItems(Array.from(new Set(invalidItems)))
     if (invalidCount > 0) {
-      notify(`有 ${invalidCount} 筆無效地址或 TXID 已略過`, 'warning')
+      notify(`有 ${invalidCount} 筆無效地址或 TXID 已略過，可使用下方「查鏈上」逐筆確認`, 'warning')
     }
+  }
+
+  const openOkLinkSearch = (key: string) => {
+    const query = key.trim()
+    if (!query) {
+      notify('查詢內容不可為空', 'warning')
+      return
+    }
+    const url = `https://www.oklink.com/zh-hant/multi-search#key=${encodeURIComponent(query)}`
+    window.open(url, '_blank', 'noopener,noreferrer')
   }
 
   const removeItem = (id: string) => {
@@ -368,6 +382,31 @@ export default function InputSection({
               <Layers className="w-4 h-4" />
               批量新增
             </button>
+
+            {invalidBatchItems.length > 0 && (
+              <div className="mt-3 rounded-lg border border-amber-300/40 dark:border-amber-800/40 bg-amber-50/70 dark:bg-amber-900/10 p-3">
+                <div className="text-xs font-medium text-amber-800 dark:text-amber-300 mb-2">
+                  本次無效項（{invalidBatchItems.length}）可直接查鏈上
+                </div>
+                <div className="space-y-2 max-h-36 overflow-y-auto custom-scrollbar pr-1">
+                  {invalidBatchItems.map((item, index) => (
+                    <div key={`${item}-${index}`} className="flex items-center gap-2">
+                      <code className="flex-1 text-xs font-mono bg-black/5 dark:bg-white/5 rounded px-2 py-1.5 truncate" title={item}>
+                        {item}
+                      </code>
+                      <button
+                        type="button"
+                        onClick={() => openOkLinkSearch(item)}
+                        className="btn btn-ghost !px-2.5 !py-1 text-xs whitespace-nowrap"
+                        title="前往 OKLink 查詢"
+                      >
+                        查鏈上
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
