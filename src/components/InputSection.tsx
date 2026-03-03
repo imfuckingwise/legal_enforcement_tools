@@ -160,7 +160,7 @@ export default function InputSection({
     setBulkInput('')
     setInvalidBatchItems(Array.from(new Set(invalidItems)))
     if (invalidCount > 0) {
-      notify(`有 ${invalidCount} 筆無效地址或 TXID 已略過，可使用下方「查鏈上」逐筆確認`, 'warning')
+      notify(`有 ${invalidCount} 筆無效地址或 TXID 已略過，可使用下方「查詢」逐筆確認`, 'warning')
     }
   }
 
@@ -386,7 +386,7 @@ export default function InputSection({
             {invalidBatchItems.length > 0 && (
               <div className="mt-3 rounded-lg border border-amber-300/40 dark:border-amber-800/40 bg-amber-50/70 dark:bg-amber-900/10 p-3">
                 <div className="text-xs font-medium text-amber-800 dark:text-amber-300 mb-2">
-                  本次無效項（{invalidBatchItems.length}）可直接查鏈上
+                  本次無效項（{invalidBatchItems.length}）可直接查詢
                 </div>
                 <div className="space-y-2 max-h-36 overflow-y-auto custom-scrollbar pr-1">
                   {invalidBatchItems.map((item, index) => (
@@ -400,7 +400,7 @@ export default function InputSection({
                         className="btn btn-ghost !px-2.5 !py-1 text-xs whitespace-nowrap"
                         title="前往 OKLink 查詢"
                       >
-                        查鏈上
+                        查詢
                       </button>
                     </div>
                   ))}
@@ -525,7 +525,7 @@ export default function InputSection({
                     <th className="w-12 sm:w-14">#</th>
                     <th className="w-20 sm:w-24">操作</th>
                     <th className="w-32 sm:w-40">信息类型</th>
-                    <th>调证信息详情（可直接編輯）</th>
+                    <th>调证信息详情</th>
                   </tr>
                 </thead>
               <tbody>
@@ -535,12 +535,24 @@ export default function InputSection({
                       {index + 1}
                     </td>
                     <td>
-                      <button
-                        onClick={() => removeItem(item.id)}
-                        className="btn btn-danger text-xs py-1 px-3"
-                      >
-                        刪除
-                      </button>
+                      <div className="flex flex-wrap gap-1.5">
+                        <button
+                          onClick={() => removeItem(item.id)}
+                          className="btn btn-danger text-xs py-1 px-3"
+                        >
+                          刪除
+                        </button>
+                        {(item.type === '充值地址' || item.type === 'TXID') && (
+                          <button
+                            type="button"
+                            onClick={() => openOkLinkSearch(item.detail)}
+                            className="btn btn-ghost text-xs py-1 px-3"
+                            title="前往 OKLink 查詢"
+                          >
+                            查詢
+                          </button>
+                        )}
+                      </div>
                     </td>
                     <td>
                       <select
