@@ -8,5 +8,16 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom'],
+          icons: ['lucide-react'],
+          xlsx: ['xlsx'],
+          pdf: ['jspdf', 'jspdf-autotable'],
+          casepack: ['docx', 'jszip']
+        }
+      }
+    }
   },
 })

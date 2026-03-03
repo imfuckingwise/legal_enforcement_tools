@@ -1,6 +1,7 @@
 import { ChangeEvent, useMemo, useState } from 'react'
 import { Archive, Copy, FileText, Plus, Trash2, Upload, X } from 'lucide-react'
 import { CasePackItem } from '../types'
+import { useFeedback } from './FeedbackProvider'
 import {
   buildCasePackZipFiles,
   downloadBlob,
@@ -8,7 +9,7 @@ import {
   validateCasePackItems
 } from '../utils/casePack'
 
-const ACCEPT_TYPES = '.pdf,.doc,.docx,.xlsx,.png,.jpg,.jpeg'
+const ACCEPT_TYPES = '.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg'
 
 function createCaseId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -30,6 +31,7 @@ function createEmptyCase(): CasePackItem {
 }
 
 export default function CasePackSection() {
+  const { notify } = useFeedback()
   const initialCase = createEmptyCase()
   const [caseItems, setCaseItems] = useState<CasePackItem[]>([initialCase])
   const [activeCaseId, setActiveCaseId] = useState(initialCase.id)
@@ -162,7 +164,7 @@ export default function CasePackSection() {
       })
       setValidationErrors(nextErrors)
       setActiveCaseId(invalid[0].id)
-      alert(`共有 ${invalid.length} 件案件資料不完整，請先修正後再打包`)
+      notify(`共有 ${invalid.length} 件案件資料不完整，請先修正後再打包`, 'warning')
       return
     }
 
@@ -174,10 +176,10 @@ export default function CasePackSection() {
         downloadBlob(output.blob, output.fileName)
         await new Promise(resolve => setTimeout(resolve, 120))
       }
-      alert(`案件整理打包完成，已下載 ${zipFiles.length} 個案件 ZIP`)
+      notify(`案件整理打包完成，已下載 ${zipFiles.length} 個案件 ZIP`, 'success')
     } catch (error) {
       console.error('打包失敗:', error)
-      alert('打包失敗，請稍後再試')
+      notify('打包失敗，請稍後再試', 'error')
     } finally {
       setIsPacking(false)
     }
@@ -217,7 +219,7 @@ export default function CasePackSection() {
                   onClick={() => setActiveCaseId(item.id)}
                   className={`w-full text-left rounded-lg border p-2.5 transition-colors ${
                     isActive
-                      ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                      ? 'border-slate-400 bg-slate-100/70 dark:bg-slate-800/60'
                       : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/60'
                   }`}
                 >
@@ -359,7 +361,7 @@ export default function CasePackSection() {
 
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Upload className="w-5 h-5 text-blue-500" />
+              <Upload className="w-5 h-5 text-slate-500" />
               <h3 className="text-base font-semibold">上傳檔案</h3>
             </div>
             <input
@@ -370,7 +372,7 @@ export default function CasePackSection() {
               className="input"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              支援多選：pdf、doc/docx、xlsx、png、jpg
+              支援多選：pdf、doc/docx、xls/xlsx、png、jpg
             </p>
           </div>
 
@@ -386,7 +388,7 @@ export default function CasePackSection() {
                     className="flex items-center justify-between glass rounded-lg p-3"
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <FileText className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                      <FileText className="w-4 h-4 text-slate-500 flex-shrink-0" />
                       <span className="text-sm text-gray-700 dark:text-gray-300 truncate">{file.name}</span>
                     </div>
                     <button

@@ -163,3 +163,41 @@ export function fixCountryName(country: string): string {
   }
   return countryMap[country] || country
 }
+
+export function buildTopNRows(analysisResults: AnalysisResult[], topN: number): Array<[string, string]> {
+  const countryCount: Record<string, number> = {}
+  analysisResults.forEach(item => {
+    const country = fixCountryName(item.country)
+    if (item.countB > 0) {
+      countryCount[country] = (countryCount[country] || 0) + item.countB
+    }
+  })
+
+  const sortedCountries = Object.entries(countryCount).sort((a, b) => b[1] - a[1])
+
+  const topNRows: Array<[string, string]> = []
+  let currentRankValue = -1
+  let rankGroups: string[] = []
+  let outputRankCount = 0
+
+  for (let i = 0; i < sortedCountries.length; i++) {
+    const [country, count] = sortedCountries[i]
+
+    if (currentRankValue !== count) {
+      if (rankGroups.length > 0) {
+        topNRows.push([`${currentRankValue}件`, rankGroups.join('、')])
+        rankGroups = []
+        outputRankCount++
+      }
+      if (outputRankCount >= topN) break
+      currentRankValue = count
+    }
+    rankGroups.push(country)
+  }
+
+  if (rankGroups.length > 0 && outputRankCount < topN) {
+    topNRows.push([`${currentRankValue}件`, rankGroups.join('、')])
+  }
+
+  return topNRows
+}

@@ -2,7 +2,13 @@ import { useState, useEffect } from 'react'
 import { Plus, Save, Upload, Copy, Trash2, Layers, FileText, Zap } from 'lucide-react'
 import { InfoItem, InfoType } from '../types'
 import { detectInfoType } from '../utils/validations'
-import * as XLSX from 'xlsx'
+import { useFeedback } from './FeedbackProvider'
+
+let xlsxModulePromise: Promise<typeof import('xlsx')> | null = null
+function loadXlsx() {
+  xlsxModulePromise ??= import('xlsx')
+  return xlsxModulePromise
+}
 
 interface InputSectionProps {
   caseNumber: string
@@ -37,23 +43,35 @@ export default function InputSection({
   showSuccess,
   setShowSuccess
 }: InputSectionProps) {
+  const infoTypeOptions: InfoType[] = [
+    '充值地址',
+    'TXID',
+    'UID',
+    '银行卡号',
+    '证件号码',
+    '手机号码',
+    '邮箱地址'
+  ]
+
   const [showPhonePrefix, setShowPhonePrefix] = useState(false)
+  const { notify, confirm } = useFeedback()
 
   useEffect(() => {
     setShowPhonePrefix(infoType === '手机号码')
   }, [infoType])
 
-  const saveFile = () => {
+  const saveFile = async () => {
     if (!caseNumber.trim()) {
-      alert('请先输入案号')
+      notify('请先输入案号', 'warning')
       return
     }
 
     if (infoList.length === 0) {
-      alert('没有要保存的信息')
+      notify('没有要保存的信息', 'warning')
       return
     }
 
+    const XLSX = await loadXlsx()
     const workbook = XLSX.utils.book_new()
     const worksheetData = [['信息类型', '调证信息详情']]
     
@@ -74,28 +92,10 @@ export default function InputSection({
 
   // 全局 Ctrl+S 快捷键
   useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+    const handleGlobalKeyDown = async (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault()
-        // 直接调用 saveFile，因为它会使用最新的 state
-        if (caseNumber.trim() && infoList.length > 0) {
-          const workbook = XLSX.utils.book_new()
-          const worksheetData = [['信息类型', '调证信息详情']]
-          
-          infoList.forEach(item => {
-            worksheetData.push([item.type, item.detail])
-          })
-
-          const worksheet = XLSX.utils.aoa_to_sheet(worksheetData)
-          XLSX.utils.book_append_sheet(workbook, worksheet, '调证信息')
-          XLSX.writeFile(workbook, `调证信息文件${caseNumber}.xlsx`)
-
-          // 重置表單
-          setCaseNumber('')
-          setInfoList([])
-          setShowSuccess(true)
-          setTimeout(() => setShowSuccess(false), 3000)
-        }
+        await saveFile()
       }
     }
 
@@ -107,7 +107,7 @@ export default function InputSection({
 
   const handleSingleInput = () => {
     if (!infoDetail.trim()) {
-      alert('信息内容不能为空')
+      notify('信息内容不能为空', 'warning')
       return
     }
 
@@ -129,12 +129,13 @@ export default function InputSection({
 
   const handleBulkInput = () => {
     if (!bulkInput.trim()) {
-      alert('批量信息不能为空')
+      notify('批量信息不能为空', 'warning')
       return
     }
 
     const lines = bulkInput.split('\n')
     const newItems: InfoItem[] = []
+    let invalidCount = 0
 
     lines.forEach(line => {
       const detail = line.replace(/["'\s]/g, '')
@@ -148,16 +149,25 @@ export default function InputSection({
           detail
         })
       } else {
-        alert(`无效的地址或TXID: ${detail}`)
+        invalidCount += 1
       }
     })
 
     setInfoList(prev => [...prev, ...newItems])
     setBulkInput('')
+    if (invalidCount > 0) {
+      notify(`有 ${invalidCount} 筆無效地址或 TXID 已略過`, 'warning')
+    }
   }
 
   const removeItem = (id: string) => {
     setInfoList(prev => prev.filter(item => item.id !== id))
+  }
+
+  const updateInfoItem = (id: string, patch: Partial<InfoItem>) => {
+    setInfoList(prev =>
+      prev.map(item => (item.id === id ? { ...item, ...patch } : item))
+    )
   }
 
   const importFile = () => {
@@ -169,8 +179,9 @@ export default function InputSection({
       if (!file) return
 
       const reader = new FileReader()
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
+          const XLSX = await loadXlsx()
           const data = new Uint8Array((e.target?.result as ArrayBuffer) || new ArrayBuffer(0))
           const workbook = XLSX.read(data, { type: 'array' })
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
@@ -187,7 +198,7 @@ export default function InputSection({
           const caseNumberFromFile = file.name.replace(/^调证信息文件|\.xlsx$/g, '')
           setCaseNumber(caseNumberFromFile)
         } catch (error) {
-          alert('導入文件失敗: ' + (error as Error).message)
+          notify('導入文件失敗: ' + (error as Error).message, 'error')
         }
       }
       reader.readAsArrayBuffer(file)
@@ -197,28 +208,35 @@ export default function InputSection({
 
   const copyAllData = () => {
     if (infoList.length === 0) {
-      alert('沒有可複製的資料！')
+      notify('沒有可複製的資料', 'warning')
       return
     }
 
     const text = infoList.map(item => `${item.type}：${item.detail}`).join('\n')
     navigator.clipboard.writeText(text).then(() => {
-      alert('所有資料已複製到剪貼簿！')
+      notify('所有資料已複製到剪貼簿', 'success')
     }).catch(err => {
       console.error('複製失敗', err)
+      notify('複製失敗，請稍後重試', 'error')
     })
   }
 
-  const deleteAllData = () => {
-    if (confirm('確定要刪除全部資料嗎？此操作無法復原！')) {
+  const deleteAllData = async () => {
+    const confirmed = await confirm({
+      title: '刪除全部資料',
+      message: '確定要刪除全部資料嗎？此操作無法復原。',
+      confirmText: '刪除'
+    })
+    if (confirmed) {
       setInfoList([])
+      notify('已清空資料', 'success')
     }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
       e.preventDefault()
-      saveFile()
+      void saveFile()
     } else if (e.key === 'Enter') {
       e.preventDefault()
       handleSingleInput()
@@ -244,7 +262,7 @@ export default function InputSection({
         <div className="lg:col-span-2 flex flex-col space-y-4">
           <div className="card flex-shrink-0">
             <div className="flex items-center gap-2 mb-2">
-              <Zap className="w-4 h-4 text-blue-500" />
+              <Zap className="w-4 h-4 text-slate-500" />
               <h2 className="text-sm font-semibold">快速錄入</h2>
             </div>
             
@@ -321,7 +339,7 @@ export default function InputSection({
                 添加
               </button>
               <button
-                onClick={saveFile}
+                onClick={() => void saveFile()}
                 className="btn btn-success flex items-center justify-center gap-2 px-4 py-1.5 text-sm"
               >
                 <Save className="w-3.5 h-3.5" />
@@ -374,7 +392,7 @@ export default function InputSection({
                 複製全部
               </button>
               <button 
-                onClick={deleteAllData} 
+                onClick={() => void deleteAllData()} 
                 className="quick-action w-full justify-start text-red-600 dark:text-red-400"
                 disabled={infoList.length === 0}
               >
@@ -390,7 +408,7 @@ export default function InputSection({
             <div className="space-y-2.5">
               <div className="flex justify-between items-center">
                 <span className="text-xs text-gray-600 dark:text-gray-400">總筆數</span>
-                <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{infoList.length}</span>
+                <span className="text-lg font-bold text-slate-700 dark:text-slate-300">{infoList.length}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-xs text-gray-600 dark:text-gray-400">案號</span>
@@ -405,15 +423,7 @@ export default function InputSection({
                 <div className="space-y-1.5">
                   {(() => {
                     // 定義所有7種類型
-                    const allTypes: InfoType[] = [
-                      '充值地址',
-                      'TXID',
-                      'UID',
-                      '银行卡号',
-                      '证件号码',
-                      '手机号码',
-                      '邮箱地址'
-                    ]
+                    const allTypes = infoTypeOptions
                     
                     // 初始化所有類型為0
                     const typeCount: Record<string, number> = {}
@@ -442,7 +452,7 @@ export default function InputSection({
                           <span className="text-xs text-gray-600 dark:text-gray-400 truncate flex-1">{type}</span>
                           <span className={`text-sm font-semibold ml-2 ${
                             count > 0 
-                              ? 'text-blue-600 dark:text-blue-400' 
+                              ? 'text-slate-700 dark:text-slate-300' 
                               : 'text-gray-400 dark:text-gray-500'
                           }`}>
                             {count}
@@ -462,7 +472,7 @@ export default function InputSection({
         <div className="card">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2">
             <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
-              <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
+              <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
               已錄入的信息
             </h3>
             <span className="badge">{infoList.length} 筆</span>
@@ -473,14 +483,18 @@ export default function InputSection({
               <table className="table min-w-full">
                 <thead>
                   <tr>
-                    <th className="w-16 sm:w-20">操作</th>
-                    <th className="w-24 sm:w-32">信息类型</th>
-                    <th>调证信息详情</th>
+                    <th className="w-12 sm:w-14">#</th>
+                    <th className="w-20 sm:w-24">操作</th>
+                    <th className="w-32 sm:w-40">信息类型</th>
+                    <th>调证信息详情（可直接編輯）</th>
                   </tr>
                 </thead>
               <tbody>
-                {infoList.map((item) => (
+                {infoList.map((item, index) => (
                   <tr key={item.id}>
+                    <td className="text-center text-xs text-gray-500 dark:text-gray-400">
+                      {index + 1}
+                    </td>
                     <td>
                       <button
                         onClick={() => removeItem(item.id)}
@@ -490,12 +504,26 @@ export default function InputSection({
                       </button>
                     </td>
                     <td>
-                      <span className="badge">{item.type}</span>
+                      <select
+                        className="input py-1 text-sm min-w-[120px]"
+                        value={item.type}
+                        onChange={(e) => updateInfoItem(item.id, { type: e.target.value as InfoType })}
+                      >
+                        {infoTypeOptions.map(type => (
+                          <option key={type} value={type}>
+                            {type}
+                          </option>
+                        ))}
+                      </select>
                     </td>
                     <td>
-                      <code className="text-sm font-mono bg-gray-100/50 dark:bg-gray-800/50 px-2 py-1 rounded">
-                        {item.detail}
-                      </code>
+                      <input
+                        type="text"
+                        className="input py-1 text-sm font-mono w-full min-w-[240px]"
+                        value={item.detail}
+                        onChange={(e) => updateInfoItem(item.id, { detail: e.target.value })}
+                        placeholder="輸入調證信息詳情"
+                      />
                     </td>
                   </tr>
                 ))}

@@ -1,6 +1,25 @@
-import JSZip from 'jszip'
-import { Document, Packer, Paragraph, TextRun } from 'docx'
 import { CasePackItem } from '../types'
+
+let casePackDepsPromise: Promise<{
+  JSZip: any
+  Document: (typeof import('docx'))['Document']
+  Packer: (typeof import('docx'))['Packer']
+  Paragraph: (typeof import('docx'))['Paragraph']
+  TextRun: (typeof import('docx'))['TextRun']
+}> | null = null
+
+function loadCasePackDeps() {
+  casePackDepsPromise ??= Promise.all([import('jszip'), import('docx')]).then(
+    ([jszipMod, docxMod]) => ({
+      JSZip: (jszipMod as any).default ?? jszipMod,
+      Document: docxMod.Document,
+      Packer: docxMod.Packer,
+      Paragraph: docxMod.Paragraph,
+      TextRun: docxMod.TextRun
+    })
+  )
+  return casePackDepsPromise
+}
 
 export interface CasePackValidationResult {
   id: string
@@ -73,6 +92,8 @@ export function validateCasePackItems(items: CasePackItem[]): CasePackValidation
 }
 
 async function createCaseDocBlob(item: CasePackItem): Promise<Blob> {
+  const { Document, Packer, Paragraph, TextRun } = await loadCasePackDeps()
+
   const createLine = (text: string) =>
     new Paragraph({
       children: [
@@ -103,6 +124,7 @@ async function createCaseDocBlob(item: CasePackItem): Promise<Blob> {
 }
 
 export async function buildCasePackZipFiles(items: CasePackItem[]): Promise<CaseZipOutput[]> {
+  const { JSZip } = await loadCasePackDeps()
   const outputs: CaseZipOutput[] = []
   const usedZipNames = new Set<string>()
 

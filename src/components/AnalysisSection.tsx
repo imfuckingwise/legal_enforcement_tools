@@ -1,9 +1,22 @@
 import { Upload, BarChart3, Copy, FileText, TrendingUp, Calendar, AlertTriangle, Download } from 'lucide-react'
 import { ExcelRow, AnalysisResult } from '../types'
-import { filterDataByDate, countCountries, calculateAnalysisResults, fixCountryName } from '../utils/analysis'
-import * as XLSX from 'xlsx'
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
+import { filterDataByDate, countCountries, calculateAnalysisResults, fixCountryName, buildTopNRows } from '../utils/analysis'
+import { parseAnalysisFileInWorker } from '../utils/xlsxWorkerClient'
+import { useFeedback } from './FeedbackProvider'
+
+let pdfDepsPromise: Promise<{
+  jsPDF: (typeof import('jspdf'))['default']
+  autoTable: (typeof import('jspdf-autotable'))['default']
+}> | null = null
+function loadPdfDeps() {
+  pdfDepsPromise ??= Promise.all([import('jspdf'), import('jspdf-autotable')]).then(
+    ([jspdfMod, autoTableMod]) => ({
+      jsPDF: jspdfMod.default,
+      autoTable: autoTableMod.default
+    })
+  )
+  return pdfDepsPromise
+}
 
 interface AnalysisSectionProps {
   excelData: ExcelRow[]
@@ -42,49 +55,41 @@ export default function AnalysisSection({
   analysisResults,
   setAnalysisResults
 }: AnalysisSectionProps) {
+  const { notify } = useFeedback()
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target?.files?.[0]
     if (!file) return
 
     if (!file.name.includes('客服-执法请求跟进')) {
-      alert('上傳失敗：檔案名稱必須包含 "客服-执法请求跟进"')
+      notify('上傳失敗：檔案名稱必須包含「客服-执法请求跟进」', 'warning')
       return
     }
 
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      try {
-        const data = new Uint8Array((e.target?.result as ArrayBuffer) || new ArrayBuffer(0))
-        const workbook = XLSX.read(data, { type: 'array' })
-        const sheet = workbook.Sheets[workbook.SheetNames[0]]
-        const jsonData = XLSX.utils.sheet_to_json(sheet) as ExcelRow[]
-
-        setExcelData(jsonData)
-      } catch (ex: any) {
-        alert('解析檔案失敗：' + ex.message)
-      }
-    }
-    reader.readAsArrayBuffer(file)
+    parseAnalysisFileInWorker(file)
+      .then(setExcelData)
+      .catch((ex: Error) => {
+        notify('解析檔案失敗：' + ex.message, 'error')
+      })
   }
 
   const startAnalysis = () => {
     if (!excelData || excelData.length === 0) {
-      alert('請先上傳 Excel 文件')
+      notify('請先上傳 Excel 文件', 'warning')
       return
     }
 
     if (!startDateA || !endDateA || !startDateB || !endDateB) {
-      alert('請選擇 A/B 區段的開始與結束日期')
+      notify('請選擇 A/B 區段的開始與結束日期', 'warning')
       return
     }
 
     if (new Date(startDateA) > new Date(endDateA)) {
-      alert('A 區段開始日期不能晚於結束日期')
+      notify('A 區段開始日期不能晚於結束日期', 'warning')
       return
     }
     if (new Date(startDateB) > new Date(endDateB)) {
-      alert('B 區段開始日期不能晚於結束日期')
+      notify('B 區段開始日期不能晚於結束日期', 'warning')
       return
     }
 
@@ -92,7 +97,7 @@ export default function AnalysisSection({
     const filteredDataB = filterDataByDate(excelData, startDateB, endDateB)
 
     if (filteredDataA.length === 0 && filteredDataB.length === 0) {
-      alert('警告：在指定日期範圍內未找到任何數據，請檢查日期範圍或 Excel 文件格式')
+      notify('在指定日期範圍內未找到任何數據，請檢查日期範圍或 Excel 文件格式', 'warning')
     }
 
     const countryCountA = countCountries(filteredDataA)
@@ -115,54 +120,22 @@ export default function AnalysisSection({
     const finalReport = reportContent.map(item => item.formatted).join('\n')
 
     navigator.clipboard.writeText(finalReport)
-      .then(() => alert('超過增長百分比的統計結果已生成並複製到剪貼簿！'))
-      .catch(err => alert('複製失敗：' + err))
+      .then(() => notify('超過增長百分比的統計結果已複製到剪貼簿', 'success'))
+      .catch(err => notify('複製失敗：' + err, 'error'))
   }
 
   const generateAndCopyTopNReport = () => {
-    const countryCount: Record<string, number> = {}
-    
-    analysisResults.forEach(item => {
-      const country = fixCountryName(item.country)
-      if (item.countB > 0) {
-        countryCount[country] = (countryCount[country] || 0) + item.countB
-      }
-    })
-
-    const sortedCountries = Object.entries(countryCount)
-      .sort((a, b) => b[1] - a[1])
-
-    let topNRows: Array<[string, string]> = []
-    let currentRankValue = -1
-    let rankGroups: string[] = []
-    let outputRankCount = 0
-
-    for (let i = 0; i < sortedCountries.length; i++) {
-      const [country, count] = sortedCountries[i]
-
-      if (currentRankValue !== count) {
-        if (rankGroups.length > 0) {
-          topNRows.push([`${currentRankValue}件`, rankGroups.join('、')])
-          rankGroups = []
-          outputRankCount++
-        }
-        if (outputRankCount >= topN) break
-        currentRankValue = count
-      }
-      rankGroups.push(country)
-    }
-    if (rankGroups.length > 0 && outputRankCount < topN) {
-      topNRows.push([`${currentRankValue}件`, rankGroups.join('、')])
-    }
+    const topNRows = buildTopNRows(analysisResults, topN)
 
     const reportText = topNRows.map(item => `${item[0]}：${item[1]}`).join('\n')
     navigator.clipboard.writeText(reportText)
-      .then(() => alert(`前 ${topN} 名案件數量已生成並複製到剪貼簿！`))
-      .catch(err => alert('複製失敗：' + err))
+      .then(() => notify(`前 ${topN} 名案件數量已複製到剪貼簿`, 'success'))
+      .catch(err => notify('複製失敗：' + err, 'error'))
   }
 
-  const exportPDFReport = () => {
+  const exportPDFReport = async () => {
     try {
+      const { jsPDF, autoTable } = await loadPdfDeps()
       const doc = new jsPDF({
         orientation: "p",
         unit: "mm",
@@ -179,36 +152,7 @@ export default function AnalysisSection({
       doc.text(`B 區段: ${startDateB} ~ ${endDateB}`, 105, yPos, { align: "center" })
       yPos += 10
 
-      const countryCount: Record<string, number> = {}
-      analysisResults.forEach(item => {
-        const country = fixCountryName(item.country)
-        if (item.countB > 0) {
-          countryCount[country] = (countryCount[country] || 0) + item.countB
-        }
-      })
-
-      const sortedCountries = Object.entries(countryCount).sort((a, b) => b[1] - a[1])
-      let topNRows: Array<[string, string]> = []
-      let currentRankValue = -1
-      let rankGroups: string[] = []
-      let outputRankCount = 0
-
-      for (let i = 0; i < sortedCountries.length; i++) {
-        const [country, count] = sortedCountries[i]
-        if (currentRankValue !== count) {
-          if (rankGroups.length > 0) {
-            topNRows.push([`${currentRankValue}件`, rankGroups.join('、')])
-            rankGroups = []
-            outputRankCount++
-          }
-          if (outputRankCount >= topN) break
-          currentRankValue = count
-        }
-        rankGroups.push(country)
-      }
-      if (rankGroups.length > 0 && outputRankCount < topN) {
-        topNRows.push([`${currentRankValue}件`, rankGroups.join('、')])
-      }
+      const topNRows = buildTopNRows(analysisResults, topN)
 
       doc.setFontSize(14)
       doc.text(`B 區段案件數排行前 ${topN} 名`, 105, yPos, { align: "center" })
@@ -262,7 +206,7 @@ export default function AnalysisSection({
       doc.save(fileName)
     } catch (ex: any) {
       console.error("exportPDFReport => 產生PDF失敗:", ex)
-      alert("匯出 PDF 時發生錯誤: " + ex.message)
+      notify("匯出 PDF 時發生錯誤: " + ex.message, 'error')
     }
   }
 
@@ -281,7 +225,7 @@ export default function AnalysisSection({
               </div>
             )}
             <div className="stat-card">
-              <div className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">{analysisResults.length}</div>
+              <div className="text-xl sm:text-2xl font-bold text-slate-700 dark:text-slate-300">{analysisResults.length}</div>
               <div className="text-xs text-gray-500 dark:text-gray-400">國家數</div>
             </div>
           </div>
@@ -292,7 +236,7 @@ export default function AnalysisSection({
         {/* 上傳數據文件 - 左邊 */}
         <div className="card flex flex-col">
           <div className="flex items-center gap-2 mb-3 flex-shrink-0">
-            <Upload className="w-4 h-4 text-blue-500" />
+            <Upload className="w-4 h-4 text-slate-500" />
             <h2 className="text-sm font-semibold">上傳數據文件</h2>
           </div>
           
@@ -449,7 +393,7 @@ export default function AnalysisSection({
         <div className="card">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-blue-500" />
+              <BarChart3 className="w-5 h-5 text-slate-500" />
               分析結果
             </h3>
             {exceedingCount > 0 && (

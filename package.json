@@ -1,6 +1,6 @@
 {
   "name": "legal-enforcement-tools",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "司法調證工具 - 用於輔助司法調證工作",
   "type": "module",
   "scripts": {

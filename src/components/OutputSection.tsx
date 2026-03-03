@@ -1,6 +1,7 @@
 import { Upload, Search, Copy, FileText, X } from 'lucide-react'
 import { MergedResultItem } from '../types'
-import * as XLSX from 'xlsx'
+import { parseOutputFileInWorker } from '../utils/xlsxWorkerClient'
+import { useFeedback } from './FeedbackProvider'
 
 interface OutputSectionProps {
   selectedFiles: File[]
@@ -31,6 +32,7 @@ export default function OutputSection({
   isAnalyzing,
   setIsAnalyzing
 }: OutputSectionProps) {
+  const { notify } = useFeedback()
 
   const handleMultipleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -49,63 +51,12 @@ export default function OutputSection({
 
   const readXlsxFile = (file: File): Promise<void> => {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        if (!e.target || !e.target.result) {
-          reject(new Error('讀取檔案失敗'))
-          return
-        }
-
-        try {
-          const data = new Uint8Array(e.target.result as ArrayBuffer)
-          const workbook = XLSX.read(data, { type: 'array' })
-          const sheet = workbook.Sheets[workbook.SheetNames[0]]
-          const jsonData = XLSX.utils.sheet_to_json(sheet) as any[]
-
-          const newUIDs = new Set<string>()
-          const newTXIDs = new Set<string>()
-          const newAddresses = new Set<string>()
-          const newResults: MergedResultItem[] = []
-
-          jsonData.forEach(row => {
-            const rawUid = (
-              row['UID Matching Results'] ||
-              row['匹配UID结果'] ||
-              ''
-            ).toString().trim()
-
-            const infoType = (
-              row['Information Type'] ||
-              row['信息类型'] ||
-              ''
-            ).toString().trim()
-
-            const infoDetail = (
-              row['Investigation Information'] ||
-              row['调证信息'] ||
-              ''
-            ).toString().trim()
-
-            if (!rawUid || rawUid === 'None') return
-
-            newUIDs.add(rawUid)
-
-            if (infoType === 'TXID') {
-              newTXIDs.add(infoDetail)
-              newResults.push({
-                uid: rawUid,
-                type: 'TXID',
-                info: infoDetail
-              })
-            } else if (infoType === 'User Deposit Address' || infoType === '用户充值地址') {
-              newAddresses.add(infoDetail)
-              newResults.push({
-                uid: rawUid,
-                type: '充值地址',
-                info: infoDetail
-              })
-            }
-          })
+      parseOutputFileInWorker(file)
+        .then(parsed => {
+          const newUIDs = new Set(parsed.uids)
+          const newTXIDs = new Set(parsed.txids)
+          const newAddresses = new Set(parsed.addresses)
+          const newResults: MergedResultItem[] = parsed.results
 
           setCombinedUIDs(prev => {
             const updated = new Set(prev)
@@ -123,20 +74,15 @@ export default function OutputSection({
             return updated
           })
           setMergedResultList(prev => [...prev, ...newResults])
-
           resolve()
-        } catch (ex) {
-          reject(ex)
-        }
-      }
-      reader.onerror = () => reject(new Error('讀取檔案失敗'))
-      reader.readAsArrayBuffer(file)
+        })
+        .catch(reject)
     })
   }
 
   const analyzeFiles = async () => {
     if (selectedFiles.length === 0) {
-      alert('尚未上傳檔案，無法分析')
+      notify('尚未上傳檔案，無法分析', 'warning')
       return
     }
 
@@ -150,7 +96,7 @@ export default function OutputSection({
       await Promise.all(selectedFiles.map(file => readXlsxFile(file)))
     } catch (err) {
       console.error('解析 XLSX 失敗', err)
-      alert('解析檔案失敗，請檢查檔案格式')
+      notify('解析檔案失敗，請檢查檔案格式', 'error')
     } finally {
       setIsAnalyzing(false)
     }
@@ -158,25 +104,31 @@ export default function OutputSection({
 
   const copyAllUniqueUIDs = () => {
     if (combinedUIDs.size === 0) {
-      alert('目前沒有任何 UID')
+      notify('目前沒有任何 UID', 'warning')
       return
     }
     const textToCopy = Array.from(combinedUIDs).join('\n')
     navigator.clipboard.writeText(textToCopy)
-      .then(() => alert('已複製所有 UID (排除重複)！'))
-      .catch(err => console.error('複製失敗', err))
+      .then(() => notify('已複製所有 UID（排除重複）', 'success'))
+      .catch(err => {
+        console.error('複製失敗', err)
+        notify('複製失敗，請稍後重試', 'error')
+      })
   }
 
   const copyAllTxidAndAddress = () => {
     const unionSet = new Set([...combinedTXIDs, ...combinedAddresses])
     if (unionSet.size === 0) {
-      alert('目前沒有任何 TXID 或 充值地址')
+      notify('目前沒有任何 TXID 或充值地址', 'warning')
       return
     }
     const textToCopy = Array.from(unionSet).join('\n')
     navigator.clipboard.writeText(textToCopy)
-      .then(() => alert('已複製所有 TXID 與 充值地址 (排除重複)！'))
-      .catch(err => console.error('複製失敗', err))
+      .then(() => notify('已複製所有 TXID 與充值地址（排除重複）', 'success'))
+      .catch(err => {
+        console.error('複製失敗', err)
+        notify('複製失敗，請稍後重試', 'error')
+      })
   }
 
   return (
@@ -188,7 +140,7 @@ export default function OutputSection({
         <div className="lg:col-span-2">
           <div className="card flex flex-col h-full">
             <div className="flex items-center gap-2 mb-4 flex-shrink-0">
-              <Upload className="w-5 h-5 text-blue-500" />
+              <Upload className="w-5 h-5 text-slate-500" />
               <h2 className="text-lg font-semibold">上傳文件</h2>
             </div>
             
@@ -217,7 +169,7 @@ export default function OutputSection({
                       className="flex items-center justify-between glass rounded-lg p-3 flex-shrink-0"
                     >
                       <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <FileText className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                        <FileText className="w-4 h-4 text-slate-500 flex-shrink-0" />
                         <span className="text-sm text-gray-700 dark:text-gray-300 truncate">
                           {file.name}
                         </span>
@@ -274,7 +226,7 @@ export default function OutputSection({
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-xs text-gray-600 dark:text-gray-400">總資料數</span>
-                <span className="text-base font-bold text-blue-600 dark:text-blue-400">
+                <span className="text-base font-bold text-slate-700 dark:text-slate-300">
                   {mergedResultList.length}
                 </span>
               </div>
@@ -295,7 +247,7 @@ export default function OutputSection({
         <div className="card">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2">
             <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
-              <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
+              <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
               分析結果
             </h3>
             <div className="flex gap-2">
